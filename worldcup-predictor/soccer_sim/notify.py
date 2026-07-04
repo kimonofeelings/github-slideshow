@@ -16,8 +16,10 @@ All senders are stdlib-only. TextBelt is always available as the
 zero-config default; --text-preview shows the exact message first.
 """
 
+import json
 import os
 import smtplib
+import urllib.error
 import urllib.parse
 import urllib.request
 from base64 import b64encode
@@ -96,11 +98,27 @@ def _send_twilio(phone, message):
         return None
     url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
     auth = b64encode(f"{sid}:{tok}".encode()).decode()
-    body = _post_form(url, {"To": phone, "From": src, "Body": message},
-                      headers={"Authorization": f"Basic {auth}"})
-    if '"error_code": null' in body or '"status": "queued"' in body:
+    try:
+        body = _post_form(url, {"To": phone, "From": src, "Body": message},
+                          headers={"Authorization": f"Basic {auth}"})
+    except urllib.error.HTTPError as e:
+        # Twilio explains rejections (bad creds, unverified number, ...)
+        # in the response body - surface that, not just the status code.
+        detail = e.read().decode(errors="replace")
+        try:
+            detail = json.loads(detail).get("message", detail)
+        except ValueError:
+            pass
+        return f"twilio said: HTTP {e.code}: {detail[:200]}"
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return f"twilio said: unparseable response: {body[:160]}"
+    if data.get("error_code") is None and \
+            data.get("status") in ("queued", "accepted", "sending", "sent"):
         return "sent"
-    return f"twilio said: {body[:160]}"
+    return (f"twilio said: status={data.get('status')} "
+            f"error={data.get('error_code')} {data.get('error_message')}")
 
 
 def _send_textbelt(phone, message):
