@@ -173,10 +173,21 @@ of the other providers, which take priority when present:
 
 1. **Twilio** — most reliable; free trial account works.
    `export TWILIO_ACCOUNT_SID=ACxxx TWILIO_AUTH_TOKEN=xxx TWILIO_FROM=+1555xxxxxxx`
-2. **Email→SMS carrier gateway** — free via your carrier's gateway
-   (Verizon `vtext.com`, AT&T `txt.att.net`, T-Mobile `tmomail.net`):
-   `export SMS_SMTP_HOST=smtp.gmail.com SMS_SMTP_USER=you@gmail.com
-   SMS_SMTP_PASS=<app password> SMS_CARRIER_GATEWAY=vtext.com`
+2. **Email→SMS carrier gateway** — free and unlimited via your carrier's
+   gateway (Verizon `vtext.com`, T-Mobile `tmomail.net`; note AT&T shut
+   its gateway down in 2025). Credentials go in a gitignored `sms.env`
+   file next to `main.py` — nothing secret touches the repo:
+
+   ```
+   SMS_SMTP_HOST=smtp.gmail.com
+   SMS_SMTP_USER=you@gmail.com
+   SMS_SMTP_PASS=abcd efgh ijkl mnop   # Google App Password, not your login
+   SMS_CARRIER_GATEWAY=vtext.com
+   ```
+
+   Create the app password at myaccount.google.com/apppasswords (needs
+   2-Step Verification). Delivery must run from your own machine — cloud
+   sandboxes typically block SMTP ports.
 
 Provider API errors are printed verbatim (with upgrade tips), never
 swallowed. Match-morning routine: `python main.py --fixtures --live

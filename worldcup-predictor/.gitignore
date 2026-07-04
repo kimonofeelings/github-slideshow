@@ -3,3 +3,4 @@ __pycache__/
 .cache/
 results_*.json
 phone.txt
+sms.env

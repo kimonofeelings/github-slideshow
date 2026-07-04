@@ -46,6 +46,21 @@ def run(home, away, sims, knockout, seed, validate, save, neutral=False,
     return res
 
 
+def _load_sms_env():
+    """Load SMS provider credentials from gitignored sms.env (KEY=VALUE
+    lines, # comments allowed) so nothing secret lives in the shell
+    profile or the repo. Real environment variables take precedence."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sms.env")
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.split("#", 1)[0].strip()
+            if "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+
 def main():
     ap = argparse.ArgumentParser(description="Soccer match Monte Carlo predictor")
     ap.add_argument("--home", default="ARG")
@@ -92,6 +107,7 @@ def main():
                            neutral=args.neutral, live=args.live))
 
     if args.text is not None or args.text_preview:
+        _load_sms_env()
         from soccer_sim.notify import sms_summary, send_sms
         message = sms_summary(results)
         if args.text_preview:
