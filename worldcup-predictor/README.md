@@ -36,11 +36,24 @@ Attacking power = 40% attack + 35% creativity + 25% pace; defending power =
 expected minutes. The attack/defense ratio in each zone becomes a chance
 multiplier (elasticity 1.6, clamped 0.55–1.85).
 
-**2. Expected goals**
-`lambda = 1.28 (knockout baseline) x zone blend (27/46/27) x midfield-control
-x opposing-GK factor x team form`, clamped to [0.25, 4.0].
+**2. Team attack & defense scores (`soccer_sim/models.py`)**
+Every team also gets an overall **attack score** and **defense score**
+(0–100), printed at the top of each report. They're minutes/fitness-weighted
+averages of individual attacking/defending power, position-weighted by
+influence (strikers dominate the attack score; GK and center backs anchor
+the defense score). Zone ratios capture the *relative* matchup; these
+capture *absolute* quality — an elite attack creates more chances against
+anyone, an elite defense concedes fewer against anyone. Each side's expected
+goals are scaled by its attack score and the opponent's defense score
+against a tournament-average baseline of 76.5 (elasticity 0.65, clamped
+0.70–1.40). Injuries and cold form pull the scores down automatically.
 
-**3. Monte Carlo (`soccer_sim/simulator.py`)**
+**3. Expected goals**
+`lambda = 1.28 (knockout baseline) x zone blend (27/46/27) x attack-score
+x opposing-defense-score x midfield-control x opposing-GK factor x team
+form`, clamped to [0.25, 4.0].
+
+**4. Monte Carlo (`soccer_sim/simulator.py`)**
 Goals per team per sim ~ Poisson(lambda), fully vectorized. Every goal is
 assigned to a scorer via a multinomial over player weights:
 `attack^1.7 x position multiplier x minutes x form x fitness`, with a bump
@@ -48,7 +61,7 @@ for penalty takers. Level knockout games play 30' of extra time at a reduced
 scoring rate; still-level games go to a shootout modeled from the top five
 takers' quality vs the opposing keeper.
 
-**4. Validation (`--validate`)**
+**5. Validation (`--validate`)**
 By Poisson thinning, a player with share *p* of team goals scores with
 probability `1 - exp(-lambda*p)`. The flag prints this closed form next to
 the Monte Carlo estimate — they should agree within ~0.5% at 100k sims,
@@ -84,8 +97,9 @@ The schema is the contract — swap hand-set ratings for data-driven ones:
   progressive carries, tackles+interceptions onto the six ratings.
 - **Injury feeds**: scrape team news and flip `status` before each run.
 - **Calibration**: backtest on past tournaments; tune `BASE_XG`,
-  `ZONE_ELASTICITY`, and position multipliers so predicted probabilities
-  match observed frequencies (reliability curves / Brier score).
+  `ZONE_ELASTICITY`, `TEAM_SCORE_BASELINE`, and position multipliers so
+  predicted probabilities match observed frequencies (reliability curves /
+  Brier score).
 
 Model outputs are estimates driven by the ratings you feed in — treat them
 as a class-project forecasting tool, not betting advice.

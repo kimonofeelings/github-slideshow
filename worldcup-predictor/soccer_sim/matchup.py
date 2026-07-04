@@ -46,6 +46,16 @@ DEF_WEIGHTS = {
 MID_POSITIONS = ("DM", "CM", "AM")
 AVG_GK_RATING = 78.0   # tournament-average keeper benchmark
 
+# --- team-level attack/defense scores ----------------------------------------
+# Zone ratios above capture the RELATIVE matchup; these capture ABSOLUTE
+# quality: an elite attack creates more chances against anyone, an elite
+# defense concedes fewer against anyone. Each side's lambda is scaled by its
+# attack score and the opponent's defense score, both measured against a
+# tournament-average baseline.
+TEAM_SCORE_BASELINE = 76.5
+ATT_SCORE_ELASTICITY = 0.65
+DEF_SCORE_ELASTICITY = 0.65
+
 
 # --- helpers -----------------------------------------------------------------
 def _weighted_group_power(players, weights, power_fn):
@@ -102,6 +112,10 @@ class TeamForecast:
     midfield_mult: float = 1.0
     gk_mult: float = 1.0
     form_mult: float = 1.0
+    attack_score: float = 0.0        # this team's overall attack (0-100)
+    defense_score: float = 0.0       # this team's overall defense (0-100)
+    att_score_mult: float = 1.0      # own attack score vs baseline
+    def_score_mult: float = 1.0      # opponent defense score suppression
 
 
 @dataclass
@@ -157,9 +171,21 @@ def _forecast_side(attacking: Team, defending: Team) -> TeamForecast:
     # 4) team-wide form
     form_mult = max(0.90, min(1.12, attacking.team_form()))
 
-    lam = BASE_XG * blended * mid_mult * gk_mult * form_mult
+    # 5) absolute quality: team attack score vs opponent defense score
+    att_score = attacking.attack_score()
+    opp_def_score = defending.defense_score()
+    att_mult = max(0.70, min(1.40,
+        (att_score / TEAM_SCORE_BASELINE) ** ATT_SCORE_ELASTICITY))
+    def_mult = max(0.70, min(1.40,
+        (TEAM_SCORE_BASELINE / max(opp_def_score, 1e-6)) ** DEF_SCORE_ELASTICITY))
+
+    lam = (BASE_XG * blended * mid_mult * gk_mult * form_mult
+           * att_mult * def_mult)
     lam = max(0.25, min(4.0, lam))
 
     return TeamForecast(team=attacking, lam=lam, zones=zones,
                         midfield_mult=mid_mult, gk_mult=gk_mult,
-                        form_mult=form_mult)
+                        form_mult=form_mult,
+                        attack_score=att_score,
+                        defense_score=attacking.defense_score(),
+                        att_score_mult=att_mult, def_score_mult=def_mult)

@@ -26,6 +26,19 @@ MINUTES_FACTOR = {FIT: 1.00, DOUBTFUL: 0.72, OUT: 0.00}
 
 VALID_POSITIONS = {"GK", "RB", "CB", "LB", "DM", "CM", "AM", "LW", "RW", "ST"}
 
+# --- team-score position weights --------------------------------------------
+# How much each position's individual power counts toward the team's overall
+# ATTACK and DEFENSE scores (0-100). A striker's finishing matters far more
+# to the attack score than a center back's; the keeper anchors the defense.
+ATTACK_SCORE_WEIGHTS = {
+    "ST": 1.00, "LW": 0.90, "RW": 0.90, "AM": 0.85,
+    "CM": 0.50, "DM": 0.25, "LB": 0.30, "RB": 0.30, "CB": 0.15, "GK": 0.00,
+}
+DEFENSE_SCORE_WEIGHTS = {
+    "GK": 1.00, "CB": 1.00, "LB": 0.85, "RB": 0.85, "DM": 0.80,
+    "CM": 0.50, "AM": 0.25, "LW": 0.20, "RW": 0.20, "ST": 0.15,
+}
+
 
 @dataclass
 class Player:
@@ -107,3 +120,32 @@ class Team:
         core = self.outfield()
         w = sum(p.minutes_share for p in core) or 1.0
         return sum(p.form * p.minutes_share for p in core) / w
+
+    # -- team-level quality scores ----------------------------------------
+    def _score(self, weights, power_fn) -> float:
+        num = den = 0.0
+        for p in self.squad():
+            w = weights.get(p.position, 0.0) * p.minutes_share
+            if w > 0:
+                num += w * power_fn(p)
+                den += w
+        return num / den if den else 45.0   # replacement-level fallback
+
+    def attack_score(self) -> float:
+        """
+        Overall ATTACK score (0-100): minutes/fitness-weighted attacking
+        power of the squad, position-weighted by goal-creation influence.
+        Injuries and cold form pull it down automatically.
+        """
+        return self._score(ATTACK_SCORE_WEIGHTS, lambda p: p.attacking_power())
+
+    def defense_score(self) -> float:
+        """
+        Overall DEFENSE score (0-100): minutes/fitness-weighted defending
+        power including the goalkeeper (rated on shot stopping alone).
+        """
+        def power(p):
+            if p.position == "GK":
+                return p.defense * p.form * p.fitness
+            return p.defending_power()
+        return self._score(DEFENSE_SCORE_WEIGHTS, power)

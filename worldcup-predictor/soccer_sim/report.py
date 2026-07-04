@@ -19,12 +19,21 @@ def print_report(res: SimulationResult, validate=False):
           f"   |   {res.n_sims:,} simulations")
     print(BAR)
 
+    print(f"\nTEAM RATINGS (0-100, minutes/fitness-weighted)")
+    for tf in (fc.home, fc.away):
+        print(f"  {tf.team.name:<14} attack {tf.attack_score:5.1f}   |   "
+              f"defense {tf.defense_score:5.1f}")
+
     print(f"\nMODEL EXPECTED GOALS (per 90')")
     print(f"  {A.name:<14} lambda = {fc.home.lam:.2f}"
-          f"   (midfield x{fc.home.midfield_mult:.2f}, "
+          f"   (attack x{fc.home.att_score_mult:.2f}, "
+          f"vs-def x{fc.home.def_score_mult:.2f}, "
+          f"midfield x{fc.home.midfield_mult:.2f}, "
           f"vs-GK x{fc.home.gk_mult:.2f}, form x{fc.home.form_mult:.2f})")
     print(f"  {B.name:<14} lambda = {fc.away.lam:.2f}"
-          f"   (midfield x{fc.away.midfield_mult:.2f}, "
+          f"   (attack x{fc.away.att_score_mult:.2f}, "
+          f"vs-def x{fc.away.def_score_mult:.2f}, "
+          f"midfield x{fc.away.midfield_mult:.2f}, "
           f"vs-GK x{fc.away.gk_mult:.2f}, form x{fc.away.form_mult:.2f})")
 
     print(f"\nZONE MATCHUPS ({A.name} attacking -> {B.name} defending)")
@@ -86,6 +95,11 @@ def to_dict(res: SimulationResult):
         "knockout": res.knockout,
         "lambda": {fc.home.team.code: round(fc.home.lam, 3),
                    fc.away.team.code: round(fc.away.lam, 3)},
+        "team_scores": {
+            fc.home.team.code: {"attack": round(fc.home.attack_score, 1),
+                                "defense": round(fc.home.defense_score, 1)},
+            fc.away.team.code: {"attack": round(fc.away.attack_score, 1),
+                                "defense": round(fc.away.defense_score, 1)}},
         "result_90": {"home_win": res.p_home_win, "draw": res.p_draw,
                       "away_win": res.p_away_win},
         "advance": {fc.home.team.code: res.p_home_advance,
