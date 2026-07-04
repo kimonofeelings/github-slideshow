@@ -12,6 +12,7 @@ python main.py --group-stage                # 90' only, draws allowed
 """
 
 import argparse
+import os
 import time
 
 from soccer_sim.data.worldcup2026 import get_team, get_context, TEAMS, FIXTURES
@@ -42,6 +43,7 @@ def run(home, away, sims, knockout, seed, validate, save, neutral=False,
         path = f"results_{a.code}_vs_{b.code}.json"
         save_json(res, path)
         print(f"Saved detailed results -> {path}\n")
+    return res
 
 
 def main():
@@ -64,6 +66,11 @@ def main():
                     help="fetch real fixture, venue and kickoff weather "
                          "(TheSportsDB + Open-Meteo, no keys needed); "
                          "injury feeds activate with APIFOOTBALL_KEY")
+    ap.add_argument("--text", nargs="?", const="", metavar="PHONE",
+                    help="text the results to this number (or set "
+                         "PREDICTOR_PHONE); see README for provider setup")
+    ap.add_argument("--text-preview", action="store_true",
+                    help="print the exact SMS without sending it")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
@@ -73,13 +80,35 @@ def main():
         return
 
     knockout = not args.group_stage
+    results = []
     if args.fixtures:
         for h, a in FIXTURES:
-            run(h, a, args.sims, knockout, args.seed, args.validate,
-                args.save, neutral=args.neutral, live=args.live)
+            results.append(run(h, a, args.sims, knockout, args.seed,
+                               args.validate, args.save,
+                               neutral=args.neutral, live=args.live))
     else:
-        run(args.home, args.away, args.sims, knockout, args.seed,
-            args.validate, args.save, neutral=args.neutral, live=args.live)
+        results.append(run(args.home, args.away, args.sims, knockout,
+                           args.seed, args.validate, args.save,
+                           neutral=args.neutral, live=args.live))
+
+    if args.text is not None or args.text_preview:
+        from soccer_sim.notify import sms_summary, send_sms
+        message = sms_summary(results)
+        if args.text_preview:
+            print("SMS PREVIEW" + f" ({len(message)} chars)\n" + "-" * 40)
+            print(message)
+            print("-" * 40)
+        if args.text is not None:
+            phone = args.text or os.environ.get("PREDICTOR_PHONE", "")
+            if not phone:
+                print("\nNo phone number: pass --text +15551234567 or set "
+                      "PREDICTOR_PHONE.")
+                return
+            ok, provider, detail = send_sms(phone, message)
+            if ok:
+                print(f"\nText sent via {provider}: {detail}")
+            else:
+                print(f"\nText NOT sent. {detail}")
 
 
 if __name__ == "__main__":

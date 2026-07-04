@@ -19,6 +19,7 @@ python main.py                          # ARG vs EGY, 100,000 sims
 python main.py --home BRA --away NOR    # any matchup
 python main.py --fixtures               # all three real R16 ties
 python main.py --fixtures --live        # + real venues & kickoff weather
+python main.py --fixtures --live --text +15551234567   # text me the results
 python main.py --sims 250000 --validate # more sims + math sanity check
 python main.py --save                   # also write results JSON
 python main.py --group-stage            # 90' only, draws stand
@@ -149,6 +150,38 @@ python main.py --fixtures --live                 # keyless: venue + weather
 APIFOOTBALL_KEY=xxx python main.py --live        # + live injury news
 ```
 
+## Text the results to your phone (`--text`)
+
+`soccer_sim/notify.py` compresses every match into one SMS — winner and
+probability, penalty chance, expected goals, most likely scoreline, top
+scorer each side, and venue flags like rain or altitude:
+
+```
+WC26 PREDICTOR - Jul 04 21:05 UTC
+ARG over EGY 72% | pens 13% | xG 1.6-0.9 | likely ARG 1-0 (12%) | scorers Alvarez 35% & Marmoush 24% | @ Mercedes-Benz
+BRA over NOR 69% | pens 13% | xG 1.6-1.0 | likely BRA 1-0 (12%) | scorers Raphinha 33% & Haaland 32% | @ MetLife
+ENG over MEX 67% | pens 14% | xG 1.0-1.5 | likely MEX 1-1 (13%) | scorers Gimenez 28% & Kane 36% | @ Estadio Banorte (rain, 2240m alt)
+(100,000 sims/match)
+```
+
+Check the message first with `--text-preview`, then send with
+`--text +15551234567` (or set `PREDICTOR_PHONE` once and just `--text`).
+Delivery tries the first configured provider, in this order:
+
+1. **Twilio** — most reliable; free trial account works.
+   `export TWILIO_ACCOUNT_SID=ACxxx TWILIO_AUTH_TOKEN=xxx TWILIO_FROM=+1555xxxxxxx`
+2. **TextBelt** — quickest start: `export TEXTBELT_KEY=textbelt` gives one
+   free US/Canada text per day (buy a key for more).
+3. **Email→SMS carrier gateway** — free via your carrier's gateway
+   (Verizon `vtext.com`, AT&T `txt.att.net`, T-Mobile `tmomail.net`):
+   `export SMS_SMTP_HOST=smtp.gmail.com SMS_SMTP_USER=you@gmail.com
+   SMS_SMTP_PASS=<app password> SMS_CARRIER_GATEWAY=vtext.com`
+
+If nothing is configured you get setup instructions instead of a silent
+failure, and provider API errors are printed verbatim. Match-morning
+routine: `python main.py --fixtures --live --text` — real venue, kickoff
+weather, injuries (with key), simulated 100k times, on your phone.
+
 ## Extending with real data
 
 The schema is the contract — swap hand-set ratings for data-driven ones:
@@ -172,6 +205,7 @@ soccer_sim/matchup.py           zone battles -> expected goals
 soccer_sim/context.py           stadium/weather/crowd/travel conditions
 soccer_sim/simulator.py         vectorized 100k-sim Monte Carlo engine
 soccer_sim/report.py            terminal report + JSON export
+soccer_sim/notify.py            SMS summary + Twilio/TextBelt/email senders
 soccer_sim/data/worldcup2026.py editable rosters + venue conditions
 soccer_sim/live/                live fixtures, weather, venue DB, injuries
   fixtures.py   TheSportsDB     weather.py  Open-Meteo
