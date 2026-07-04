@@ -18,6 +18,7 @@ pip install numpy
 python main.py                          # ARG vs EGY, 100,000 sims
 python main.py --home BRA --away NOR    # any matchup
 python main.py --fixtures               # all three real R16 ties
+python main.py --fixtures --live        # + real venues & kickoff weather
 python main.py --sims 250000 --validate # more sims + math sanity check
 python main.py --save                   # also write results JSON
 python main.py --group-stage            # 90' only, draws stand
@@ -119,13 +120,41 @@ Copy any block in the data file. Positions: GK RB CB LB DM CM AM LW RW ST.
 Ratings are 0–100 (analyst estimates in the demo data — deliberately
 editable). Add a fixture tuple to `FIXTURES` if you want it in `--fixtures`.
 
+## Live data (`--live`)
+
+`soccer_sim/live/` connects the model to real sources, layered by trust,
+with zero required signup:
+
+| Source | Provides | Key needed |
+|---|---|---|
+| TheSportsDB | real fixture: date, venue, round | none |
+| Shipped venue DB | coordinates, altitude, roof for all 16 WC stadiums | n/a |
+| Open-Meteo | hourly forecast at the stadium for the kickoff hour | none |
+| API-Football | live injury list → flips players to `out` | `APIFOOTBALL_KEY` |
+
+Every run prints exactly what came from live sources vs. curated
+estimates. Responses are cached on disk (weather 15 min, fixtures 6 h) to
+stay polite to the free tiers, and **any source that's unreachable simply
+falls back to the curated value** — the simulator never breaks offline.
+
+Live lookups have already corrected this repo once: the hand-set contexts
+guessed Brazil–Norway in Miami and Argentina–Egypt in Dallas; the real
+schedule has them at MetLife Stadium and Mercedes-Benz Stadium, and the
+curated data was fixed to match. It also catches weather the curator
+can't: the current Mexico City forecast shows evening rain at kickoff,
+which flows straight into the rain factor.
+
+```bash
+python main.py --fixtures --live                 # keyless: venue + weather
+APIFOOTBALL_KEY=xxx python main.py --live        # + live injury news
+```
+
 ## Extending with real data
 
 The schema is the contract — swap hand-set ratings for data-driven ones:
 
 - **FBref / StatsBomb / Understat**: map per-90 npxG, shot-creating actions,
   progressive carries, tackles+interceptions onto the six ratings.
-- **Injury feeds**: scrape team news and flip `status` before each run.
 - **Calibration**: backtest on past tournaments; tune `BASE_XG`,
   `ZONE_ELASTICITY`, `TEAM_SCORE_BASELINE`, and position multipliers so
   predicted probabilities match observed frequencies (reliability curves /
@@ -144,4 +173,7 @@ soccer_sim/context.py           stadium/weather/crowd/travel conditions
 soccer_sim/simulator.py         vectorized 100k-sim Monte Carlo engine
 soccer_sim/report.py            terminal report + JSON export
 soccer_sim/data/worldcup2026.py editable rosters + venue conditions
+soccer_sim/live/                live fixtures, weather, venue DB, injuries
+  fixtures.py   TheSportsDB     weather.py  Open-Meteo
+  venues.py     16 WC stadiums  enrich.py   merge live -> MatchContext
 ```

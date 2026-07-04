@@ -21,8 +21,9 @@ def print_report(res: SimulationResult, validate=False):
     print(BAR)
 
     if fc.context is not None:
-        print(f"\nMATCH CONDITIONS - {describe(fc.context)}")
         c = fc.context
+        tag = f" [{c.source}]" if c.source else ""
+        print(f"\nMATCH CONDITIONS - {describe(c)}{tag}")
         print(f"  Crowd {c.crowd:,} ({c.home_support:.0%} behind {A.name})"
               f"   |   pitch {c.pitch_quality:.0%}"
               f"   |   rest {c.rest_days[0]}v{c.rest_days[1]} days")

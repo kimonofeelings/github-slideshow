@@ -152,26 +152,26 @@ TEAMS["ENG"] = _team("ENG", "England", [
 # (first-listed team, second-listed team). Edit freely — e.g. bump `rain`
 # if the forecast turns, or `crowd`/`home_support` after ticket news.
 CONTEXTS = {
-    # Indoor stadium in Texas: weather is a non-factor, but the crowd
+    # Indoor stadium in Atlanta: weather is a non-factor, but the crowd
     # skews heavily Argentine and Egypt had the longer trip in.
     ("ARG", "EGY"): MatchContext(
-        venue="AT&T Stadium", city="Arlington", kickoff_local="18:00",
-        roof_closed=True, crowd=80_000, home_support=0.64,
+        venue="Mercedes-Benz Stadium", city="Atlanta", kickoff_local="18:00",
+        roof_closed=True, crowd=71_000, home_support=0.64,
         ref_strictness=0.45,
         rest_days=(4, 4), travel_km=(1_300, 2_200),
     ),
-    # Miami in summer: brutal heat and humidity. Brazil lives in this
-    # climate; Norway very much does not.
+    # New Jersey in July: can run hot and sticky. Brazil copes with
+    # heat far better than Norway if it does.
     ("BRA", "NOR"): MatchContext(
-        venue="Hard Rock Stadium", city="Miami", kickoff_local="15:00",
-        temp_c=32.0, humidity=0.78, wind_kmh=12, crowd=65_000,
-        home_support=0.72, ref_strictness=0.50,
+        venue="MetLife Stadium", city="East Rutherford", kickoff_local="15:00",
+        temp_c=29.0, humidity=0.65, wind_kmh=12, crowd=82_000,
+        home_support=0.70, ref_strictness=0.50,
         heat_adapted=(True, False),
         rest_days=(4, 4), travel_km=(900, 1_900),
     ),
-    # Estadio Azteca, 2,240m above sea level, ~87k almost all in green.
-    # Mexico trains at altitude; England flew in from sea level with one
-    # day less rest. The pitch has taken a beating all tournament.
+    # Estadio Azteca (now Banorte), 2,240m above sea level, ~87k almost
+    # all in green. Mexico trains at altitude; England flew in from sea
+    # level with one day less rest. The pitch has taken a beating.
     ("MEX", "ENG"): MatchContext(
         venue="Estadio Azteca", city="Mexico City", kickoff_local="19:00",
         altitude_m=2_240, temp_c=22.0, humidity=0.45, wind_kmh=9,

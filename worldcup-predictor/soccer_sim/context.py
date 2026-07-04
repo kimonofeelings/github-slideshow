@@ -40,6 +40,8 @@ class MatchContext:
     travel_km: tuple = (500, 500)          # since previous match
     altitude_adapted: tuple = (False, False)   # trains/plays at altitude
     heat_adapted: tuple = (False, False)       # used to hot-humid climates
+    # --- provenance -----------------------------------------------------------
+    source: str = ""             # e.g. "LIVE (fetched 2026-07-04 20:45 UTC)"
 
 
 NEUTRAL = MatchContext()
@@ -162,5 +164,9 @@ def describe(ctx: MatchContext):
             bits.append("rain" if ctx.rain < 0.6 else "heavy rain")
         wx = ", ".join(bits)
     extra = f" | altitude {ctx.altitude_m:,}m" if ctx.altitude_m >= 800 else ""
-    ko = f" | {ctx.kickoff_local} local" if ctx.kickoff_local else ""
+    ko = ""
+    if ctx.kickoff_local:
+        ko = f" | kickoff {ctx.kickoff_local}"
+        if "UTC" not in ctx.kickoff_local:
+            ko += " local"
     return f"{where} ({wx}{extra}{ko})"

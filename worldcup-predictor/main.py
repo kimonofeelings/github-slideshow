@@ -19,9 +19,19 @@ from soccer_sim.simulator import simulate_match
 from soccer_sim.report import print_report, save_json
 
 
-def run(home, away, sims, knockout, seed, validate, save, neutral=False):
+def run(home, away, sims, knockout, seed, validate, save, neutral=False,
+        live=False):
     a, b = get_team(home), get_team(away)
     context = None if neutral else get_context(home, away)
+    if live and not neutral:
+        from soccer_sim.live import live_context, apply_squad_news
+        context, notes, fetched = live_context(a, b, base=context)
+        apply_squad_news(a, notes)
+        apply_squad_news(b, notes)
+        context.source = f"LIVE, fetched {fetched}"
+        print("LIVE DATA")
+        for n in notes:
+            print(f"  - {n}")
     t0 = time.time()
     res = simulate_match(a, b, n_sims=sims, knockout=knockout, seed=seed,
                          context=context)
@@ -50,6 +60,10 @@ def main():
                     help="run all real Round-of-16 ties in the data file")
     ap.add_argument("--neutral", action="store_true",
                     help="ignore venue/weather/crowd conditions")
+    ap.add_argument("--live", action="store_true",
+                    help="fetch real fixture, venue and kickoff weather "
+                         "(TheSportsDB + Open-Meteo, no keys needed); "
+                         "injury feeds activate with APIFOOTBALL_KEY")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
@@ -62,10 +76,10 @@ def main():
     if args.fixtures:
         for h, a in FIXTURES:
             run(h, a, args.sims, knockout, args.seed, args.validate,
-                args.save, neutral=args.neutral)
+                args.save, neutral=args.neutral, live=args.live)
     else:
         run(args.home, args.away, args.sims, knockout, args.seed,
-            args.validate, args.save, neutral=args.neutral)
+            args.validate, args.save, neutral=args.neutral, live=args.live)
 
 
 if __name__ == "__main__":
