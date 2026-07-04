@@ -3,15 +3,17 @@
 `sms_summary()` compresses one or more simulation results into a compact
 SMS (winners, probabilities, expected goals, most likely scoreline, top
 scorers, standout conditions). `send_sms()` delivers it through the
-first configured provider:
+first available provider:
 
   1. Twilio            TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_FROM
-  2. TextBelt          TEXTBELT_KEY  ("textbelt" = shared free key, 1/day)
-  3. Email->SMS        SMS_SMTP_HOST/PORT/USER/PASS + SMS_CARRIER_GATEWAY
+  2. Email->SMS        SMS_SMTP_HOST/PORT/USER/PASS + SMS_CARRIER_GATEWAY
                        (e.g. vtext.com, txt.att.net, tmomail.net)
+  3. TextBelt          works OUT OF THE BOX: the shared free key
+                       ("textbelt") sends 1 free US/Canada text per day.
+                       Set TEXTBELT_KEY to a purchased key for more.
 
-All senders are stdlib-only. Nothing is sent unless a provider is
-configured; --text-preview always shows the exact message first.
+All senders are stdlib-only. TextBelt is always available as the
+zero-config default; --text-preview shows the exact message first.
 """
 
 import os
@@ -102,9 +104,8 @@ def _send_twilio(phone, message):
 
 
 def _send_textbelt(phone, message):
-    key = os.environ.get("TEXTBELT_KEY")
-    if not key:
-        return None
+    # "textbelt" is the provider's shared free key: 1 US/Canada text/day.
+    key = os.environ.get("TEXTBELT_KEY", "textbelt")
     body = _post_form("https://textbelt.com/text",
                       {"phone": phone, "message": message, "key": key})
     if '"success":true' in body.replace(" ", ""):
@@ -131,16 +132,18 @@ def _send_email_gateway(phone, message):
     return "sent"
 
 
+# Explicitly-configured providers first; TextBelt last because its shared
+# free key always "qualifies" and should not shadow a real Twilio setup.
 PROVIDERS = [("Twilio", _send_twilio),
-             ("TextBelt", _send_textbelt),
-             ("Email->SMS gateway", _send_email_gateway)]
+             ("Email->SMS gateway", _send_email_gateway),
+             ("TextBelt", _send_textbelt)]
 
-SETUP_HELP = """No SMS provider configured. Set one of:
-  Twilio (most reliable):
+UPGRADE_HINT = """Free-tier tips:
+  - TextBelt's shared free key sends 1 US/Canada text per day; a purchased
+    key (TEXTBELT_KEY) removes the limit.
+  - For unlimited/reliable delivery use a free Twilio trial:
     export TWILIO_ACCOUNT_SID=ACxxxx TWILIO_AUTH_TOKEN=xxxx TWILIO_FROM=+1555...
-  TextBelt (quickest start; key 'textbelt' = 1 free text/day):
-    export TEXTBELT_KEY=textbelt
-  Email->SMS via your carrier (free, needs SMTP e.g. Gmail app password):
+  - Or your carrier's free email gateway (Gmail app password):
     export SMS_SMTP_HOST=smtp.gmail.com SMS_SMTP_USER=you@gmail.com \\
            SMS_SMTP_PASS=app-password SMS_CARRIER_GATEWAY=vtext.com"""
 
@@ -159,6 +162,4 @@ def send_sms(phone, message):
         if outcome == "sent":
             return True, name, "delivered to " + phone
         tried.append(f"{name}: {outcome}")
-    if tried:
-        return False, None, "; ".join(tried)
-    return False, None, SETUP_HELP
+    return False, None, "; ".join(tried) + "\n" + UPGRADE_HINT

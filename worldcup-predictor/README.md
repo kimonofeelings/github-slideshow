@@ -164,23 +164,24 @@ ENG over MEX 67% | pens 14% | xG 1.0-1.5 | likely MEX 1-1 (13%) | scorers Gimene
 (100,000 sims/match)
 ```
 
-Check the message first with `--text-preview`, then send with
-`--text +15551234567` (or set `PREDICTOR_PHONE` once and just `--text`).
-Delivery tries the first configured provider, in this order:
+**Zero setup required**: check the message with `--text-preview`, then
+send with `--text +15551234567` (or set `PREDICTOR_PHONE` once and just
+`--text`). Out of the box, delivery uses **TextBelt's shared free key —
+one free US/Canada text per day, no signup**. Buy a TextBelt key
+(`export TEXTBELT_KEY=...`) to remove the daily limit, or configure one
+of the other providers, which take priority when present:
 
 1. **Twilio** — most reliable; free trial account works.
    `export TWILIO_ACCOUNT_SID=ACxxx TWILIO_AUTH_TOKEN=xxx TWILIO_FROM=+1555xxxxxxx`
-2. **TextBelt** — quickest start: `export TEXTBELT_KEY=textbelt` gives one
-   free US/Canada text per day (buy a key for more).
-3. **Email→SMS carrier gateway** — free via your carrier's gateway
+2. **Email→SMS carrier gateway** — free via your carrier's gateway
    (Verizon `vtext.com`, AT&T `txt.att.net`, T-Mobile `tmomail.net`):
    `export SMS_SMTP_HOST=smtp.gmail.com SMS_SMTP_USER=you@gmail.com
    SMS_SMTP_PASS=<app password> SMS_CARRIER_GATEWAY=vtext.com`
 
-If nothing is configured you get setup instructions instead of a silent
-failure, and provider API errors are printed verbatim. Match-morning
-routine: `python main.py --fixtures --live --text` — real venue, kickoff
-weather, injuries (with key), simulated 100k times, on your phone.
+Provider API errors are printed verbatim (with upgrade tips), never
+swallowed. Match-morning routine: `python main.py --fixtures --live
+--text` — real venue, kickoff weather, injuries (with key), simulated
+100k times, on your phone.
 
 ## Extending with real data
 
