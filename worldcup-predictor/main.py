@@ -101,8 +101,16 @@ def main():
         if args.text is not None:
             phone = args.text or os.environ.get("PREDICTOR_PHONE", "")
             if not phone:
-                print("\nNo phone number: pass --text +15551234567 or set "
-                      "PREDICTOR_PHONE.")
+                # phone.txt is gitignored: your number stays off GitHub
+                path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "phone.txt")
+                if os.path.exists(path):
+                    with open(path) as f:
+                        phone = f.read().strip()
+            if not phone:
+                print("\nNo phone number. Either pass --text +15551234567, "
+                      "set PREDICTOR_PHONE, or save it once with:\n"
+                      "  echo +15551234567 > phone.txt   (gitignored)")
                 return
             ok, provider, detail = send_sms(phone, message)
             if ok:
