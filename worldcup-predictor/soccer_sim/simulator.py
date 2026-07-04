@@ -95,9 +95,10 @@ class SimulationResult:
     scorers_away: list = field(default_factory=list)
 
 
-def simulate_match(team_a, team_b, n_sims=100_000, knockout=True, seed=42):
+def simulate_match(team_a, team_b, n_sims=100_000, knockout=True, seed=42,
+                   context=None):
     rng = np.random.default_rng(None if seed is None or seed < 0 else seed)
-    fc = forecast_match(team_a, team_b)
+    fc = forecast_match(team_a, team_b, context=context)
     lam_a, lam_b = fc.home.lam, fc.away.lam
 
     # --- 1) regulation goals -------------------------------------------------

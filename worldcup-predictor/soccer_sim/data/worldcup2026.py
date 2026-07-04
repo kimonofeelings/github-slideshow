@@ -17,6 +17,7 @@ Player(name, position, attack, creativity, pace, defense, physical, ...)
 """
 
 from ..models import Player, Team
+from ..context import MatchContext
 
 
 def _team(code, name, players):
@@ -146,6 +147,41 @@ TEAMS["ENG"] = _team("ENG", "England", [
     Player("E. Konsa",       "CB", 34, 62, 76, 82, 78, minutes=20),
 ])
 
+# ------------------------------------------------------- MATCH CONDITIONS
+# Venue + circumstances for each real Round of 16 tie. Tuples are
+# (first-listed team, second-listed team). Edit freely — e.g. bump `rain`
+# if the forecast turns, or `crowd`/`home_support` after ticket news.
+CONTEXTS = {
+    # Indoor stadium in Texas: weather is a non-factor, but the crowd
+    # skews heavily Argentine and Egypt had the longer trip in.
+    ("ARG", "EGY"): MatchContext(
+        venue="AT&T Stadium", city="Arlington", kickoff_local="18:00",
+        roof_closed=True, crowd=80_000, home_support=0.64,
+        ref_strictness=0.45,
+        rest_days=(4, 4), travel_km=(1_300, 2_200),
+    ),
+    # Miami in summer: brutal heat and humidity. Brazil lives in this
+    # climate; Norway very much does not.
+    ("BRA", "NOR"): MatchContext(
+        venue="Hard Rock Stadium", city="Miami", kickoff_local="15:00",
+        temp_c=32.0, humidity=0.78, wind_kmh=12, crowd=65_000,
+        home_support=0.72, ref_strictness=0.50,
+        heat_adapted=(True, False),
+        rest_days=(4, 4), travel_km=(900, 1_900),
+    ),
+    # Estadio Azteca, 2,240m above sea level, ~87k almost all in green.
+    # Mexico trains at altitude; England flew in from sea level with one
+    # day less rest. The pitch has taken a beating all tournament.
+    ("MEX", "ENG"): MatchContext(
+        venue="Estadio Azteca", city="Mexico City", kickoff_local="19:00",
+        altitude_m=2_240, temp_c=22.0, humidity=0.45, wind_kmh=9,
+        pitch_quality=0.92, crowd=87_000, home_support=0.85,
+        ref_strictness=0.55,
+        altitude_adapted=(True, False),
+        rest_days=(3, 4), travel_km=(0, 2_400),
+    ),
+}
+
 # Real Round of 16 fixtures covered by this demo data
 FIXTURES = [("ARG", "EGY"), ("BRA", "NOR"), ("MEX", "ENG")]
 
@@ -155,3 +191,24 @@ def get_team(code):
     if code not in TEAMS:
         raise KeyError(f"Unknown team '{code}'. Available: {', '.join(TEAMS)}")
     return TEAMS[code]
+
+
+def get_context(home, away):
+    """Known real-fixture conditions for this pairing, else None (neutral).
+    Checks the reversed pairing too, swapping the per-side tuples."""
+    home, away = home.upper(), away.upper()
+    ctx = CONTEXTS.get((home, away))
+    if ctx:
+        return ctx
+    rev = CONTEXTS.get((away, home))
+    if rev:
+        from dataclasses import replace
+        return replace(
+            rev,
+            home_support=1.0 - rev.home_support,
+            rest_days=rev.rest_days[::-1],
+            travel_km=rev.travel_km[::-1],
+            altitude_adapted=rev.altitude_adapted[::-1],
+            heat_adapted=rev.heat_adapted[::-1],
+        )
+    return None

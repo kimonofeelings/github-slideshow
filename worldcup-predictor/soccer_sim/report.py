@@ -2,6 +2,7 @@
 
 import json
 from .simulator import SimulationResult, analytic_anytime_check
+from .context import describe
 
 BAR = "=" * 66
 SUB = "-" * 66
@@ -19,6 +20,20 @@ def print_report(res: SimulationResult, validate=False):
           f"   |   {res.n_sims:,} simulations")
     print(BAR)
 
+    if fc.context is not None:
+        print(f"\nMATCH CONDITIONS - {describe(fc.context)}")
+        c = fc.context
+        print(f"  Crowd {c.crowd:,} ({c.home_support:.0%} behind {A.name})"
+              f"   |   pitch {c.pitch_quality:.0%}"
+              f"   |   rest {c.rest_days[0]}v{c.rest_days[1]} days")
+        if fc.context_rows:
+            print(f"  {'Factor':<20} {A.name:>10} {B.name:>10}")
+            for r in fc.context_rows:
+                print(f"  {r['factor']:<20} {'x%.2f' % r['home']:>10}"
+                      f" {'x%.2f' % r['away']:>10}")
+            print(f"  {'TOTAL':<20} {'x%.2f' % fc.home.ctx_mult:>10}"
+                  f" {'x%.2f' % fc.away.ctx_mult:>10}")
+
     print(f"\nTEAM RATINGS (0-100, minutes/fitness-weighted)")
     for tf in (fc.home, fc.away):
         print(f"  {tf.team.name:<14} attack {tf.attack_score:5.1f}   |   "
@@ -29,12 +44,14 @@ def print_report(res: SimulationResult, validate=False):
           f"   (attack x{fc.home.att_score_mult:.2f}, "
           f"vs-def x{fc.home.def_score_mult:.2f}, "
           f"midfield x{fc.home.midfield_mult:.2f}, "
-          f"vs-GK x{fc.home.gk_mult:.2f}, form x{fc.home.form_mult:.2f})")
+          f"vs-GK x{fc.home.gk_mult:.2f}, form x{fc.home.form_mult:.2f}, "
+          f"conditions x{fc.home.ctx_mult:.2f})")
     print(f"  {B.name:<14} lambda = {fc.away.lam:.2f}"
           f"   (attack x{fc.away.att_score_mult:.2f}, "
           f"vs-def x{fc.away.def_score_mult:.2f}, "
           f"midfield x{fc.away.midfield_mult:.2f}, "
-          f"vs-GK x{fc.away.gk_mult:.2f}, form x{fc.away.form_mult:.2f})")
+          f"vs-GK x{fc.away.gk_mult:.2f}, form x{fc.away.form_mult:.2f}, "
+          f"conditions x{fc.away.ctx_mult:.2f})")
 
     print(f"\nZONE MATCHUPS ({A.name} attacking -> {B.name} defending)")
     for z, label in (("L", "Left "), ("C", "Center"), ("R", "Right ")):
@@ -95,6 +112,11 @@ def to_dict(res: SimulationResult):
         "knockout": res.knockout,
         "lambda": {fc.home.team.code: round(fc.home.lam, 3),
                    fc.away.team.code: round(fc.away.lam, 3)},
+        "conditions": None if fc.context is None else {
+            "venue": describe(fc.context),
+            "multipliers": {fc.home.team.code: round(fc.home.ctx_mult, 3),
+                            fc.away.team.code: round(fc.away.ctx_mult, 3)},
+            "factors": fc.context_rows},
         "team_scores": {
             fc.home.team.code: {"attack": round(fc.home.attack_score, 1),
                                 "defense": round(fc.home.defense_score, 1)},

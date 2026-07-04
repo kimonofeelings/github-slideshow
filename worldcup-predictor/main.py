@@ -14,15 +14,17 @@ python main.py --group-stage                # 90' only, draws allowed
 import argparse
 import time
 
-from soccer_sim.data.worldcup2026 import get_team, TEAMS, FIXTURES
+from soccer_sim.data.worldcup2026 import get_team, get_context, TEAMS, FIXTURES
 from soccer_sim.simulator import simulate_match
 from soccer_sim.report import print_report, save_json
 
 
-def run(home, away, sims, knockout, seed, validate, save):
+def run(home, away, sims, knockout, seed, validate, save, neutral=False):
     a, b = get_team(home), get_team(away)
+    context = None if neutral else get_context(home, away)
     t0 = time.time()
-    res = simulate_match(a, b, n_sims=sims, knockout=knockout, seed=seed)
+    res = simulate_match(a, b, n_sims=sims, knockout=knockout, seed=seed,
+                         context=context)
     dt = time.time() - t0
     print_report(res, validate=validate)
     print(f"({sims:,} simulations in {dt:.2f}s)\n")
@@ -46,6 +48,8 @@ def main():
     ap.add_argument("--save", action="store_true", help="write JSON results")
     ap.add_argument("--fixtures", action="store_true",
                     help="run all real Round-of-16 ties in the data file")
+    ap.add_argument("--neutral", action="store_true",
+                    help="ignore venue/weather/crowd conditions")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
@@ -57,10 +61,11 @@ def main():
     knockout = not args.group_stage
     if args.fixtures:
         for h, a in FIXTURES:
-            run(h, a, args.sims, knockout, args.seed, args.validate, args.save)
+            run(h, a, args.sims, knockout, args.seed, args.validate,
+                args.save, neutral=args.neutral)
     else:
         run(args.home, args.away, args.sims, knockout, args.seed,
-            args.validate, args.save)
+            args.validate, args.save, neutral=args.neutral)
 
 
 if __name__ == "__main__":

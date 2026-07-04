@@ -14,6 +14,7 @@ full per-zone breakdown so you can inspect *why* the model favors a team.
 
 from dataclasses import dataclass, field
 from .models import Team
+from .context import MatchContext, NEUTRAL, context_effects
 
 # Baseline expected goals per team in an evenly-matched knockout game.
 # (World Cup knockout matches average ~2.4-2.6 total goals in 90'.)
@@ -116,22 +117,29 @@ class TeamForecast:
     defense_score: float = 0.0       # this team's overall defense (0-100)
     att_score_mult: float = 1.0      # own attack score vs baseline
     def_score_mult: float = 1.0      # opponent defense score suppression
+    ctx_mult: float = 1.0            # match-conditions multiplier
 
 
 @dataclass
 class MatchForecast:
     home: TeamForecast
     away: TeamForecast
+    context: MatchContext = None
+    context_rows: list = field(default_factory=list)  # factor breakdown
 
 
 # --- main entry -----------------------------------------------------------------
-def forecast_match(team_a: Team, team_b: Team) -> MatchForecast:
-    fa = _forecast_side(attacking=team_a, defending=team_b)
-    fb = _forecast_side(attacking=team_b, defending=team_a)
-    return MatchForecast(home=fa, away=fb)
+def forecast_match(team_a: Team, team_b: Team,
+                   context: MatchContext = None) -> MatchForecast:
+    ctx = context or NEUTRAL
+    ctx_a, ctx_b, rows = context_effects(ctx, team_a, team_b)
+    fa = _forecast_side(attacking=team_a, defending=team_b, ctx_mult=ctx_a)
+    fb = _forecast_side(attacking=team_b, defending=team_a, ctx_mult=ctx_b)
+    return MatchForecast(home=fa, away=fb, context=context, context_rows=rows)
 
 
-def _forecast_side(attacking: Team, defending: Team) -> TeamForecast:
+def _forecast_side(attacking: Team, defending: Team,
+                   ctx_mult: float = 1.0) -> TeamForecast:
     att_players = attacking.squad()
     def_players = defending.squad()
 
@@ -180,7 +188,7 @@ def _forecast_side(attacking: Team, defending: Team) -> TeamForecast:
         (TEAM_SCORE_BASELINE / max(opp_def_score, 1e-6)) ** DEF_SCORE_ELASTICITY))
 
     lam = (BASE_XG * blended * mid_mult * gk_mult * form_mult
-           * att_mult * def_mult)
+           * att_mult * def_mult * ctx_mult)
     lam = max(0.25, min(4.0, lam))
 
     return TeamForecast(team=attacking, lam=lam, zones=zones,
@@ -188,4 +196,5 @@ def _forecast_side(attacking: Team, defending: Team) -> TeamForecast:
                         form_mult=form_mult,
                         attack_score=att_score,
                         defense_score=attacking.defense_score(),
-                        att_score_mult=att_mult, def_score_mult=def_mult)
+                        att_score_mult=att_mult, def_score_mult=def_mult,
+                        ctx_mult=ctx_mult)
