@@ -117,38 +117,105 @@ def build_ft_message(team_a, team_b, state, learn_notes, record):
     return "\n".join(lines)
 
 
-def run_live_update(home_code, away_code, n_sims=1_000_000):
-    """One poll: fetch real state, simulate, send. Returns a status
-    string: 'live-sent', 'ft-sent', 'not-started', 'already-graded',
-    'no-data', or an error description."""
+HEARTBEAT_SECONDS = 22 * 60    # resend cadence when the score hasn't moved
+
+
+def _sent_state_path(home_code, away_code):
+    import os
+    from .live.http import CACHE_DIR
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    return os.path.join(CACHE_DIR, f"sent_{home_code}_{away_code}.json")
+
+
+def _load_sent(home_code, away_code):
+    import json
+    try:
+        with open(_sent_state_path(home_code, away_code)) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_sent(home_code, away_code, **fields):
+    import json
+    import time
+    rec = _load_sent(home_code, away_code)
+    rec.update(fields, ts=time.time())
+    with open(_sent_state_path(home_code, away_code), "w") as f:
+        json.dump(rec, f)
+
+
+def run_live_update(home_code, away_code, n_sims=1_000_000, force=False):
+    """One poll: fetch real state (ESPN first - live scores + true match
+    clock; TheSportsDB fallback), simulate from it, and send only when
+    there is news: a goal, a first update, or a heartbeat interval.
+    Returns: 'goal-sent', 'live-sent', 'ft-sent', 'no-change',
+    'not-started', 'already-graded', 'no-data', or an error string."""
+    import time
     from .data.worldcup2026 import get_team, get_context
-    from .live.fixtures import fetch_live_state
+    from .live import espn
+    from .live.fixtures import fetch_live_state as tsdb_state
     from .notify import send_sms
     from . import learn
 
     a, b = get_team(home_code), get_team(away_code)
-    state = fetch_live_state(a.name, b.name)
+    state = espn.fetch_live_state(a.name, b.name)
+    if state is None:
+        state = tsdb_state(a.name, b.name)
+        if state is not None:
+            state.setdefault("minute", None)
+            state.setdefault("halftime", False)
     if state is None:
         return "no-data"
+    score = [state["home_goals"], state["away_goals"]]
 
     if state["finished"]:
-        if learn.is_settled(a.code, b.code):
+        sent = _load_sent(home_code, away_code)
+        if learn.is_settled(a.code, b.code) or sent.get("ft_sent"):
             return "already-graded"
-        notes = learn.update_from_results()
+        notes = learn.update_from_results(
+            hints={(a.code, b.code): tuple(score)})
         msg = build_ft_message(a, b, state, notes, learn.record_line())
         ok, prov, detail = send_sms(_phone(), msg)
+        if ok:
+            _save_sent(home_code, away_code, score=score, ft_sent=True)
         return "ft-sent" if ok else f"ft-send-failed: {detail}"
 
     if not state["live"]:
         return "not-started"
 
-    minutes_left = minutes_left_from_kickoff(state.get("kickoff_utc")) or 30.0
+    # --- decide whether this poll is newsworthy -------------------------
+    sent = _load_sent(home_code, away_code)
+    reason = None
+    if force or not sent:
+        reason = "first"
+    elif sent.get("score") != score:
+        reason = "goal"
+    elif time.time() - sent.get("ts", 0) >= HEARTBEAT_SECONDS:
+        reason = "heartbeat"
+    if reason is None:
+        return "no-change"
+
+    # --- minutes left: real clock when ESPN has it ----------------------
+    if state.get("halftime"):
+        minutes_left = 45.0
+    elif state.get("minute") is not None:
+        minutes_left = max(0.0, 90.0 - state["minute"])
+    else:
+        minutes_left = minutes_left_from_kickoff(
+            state.get("kickoff_utc")) or 30.0
+
     ctx = get_context(home_code, away_code)
-    sim = simulate_inplay(a, b, state["home_goals"], state["away_goals"],
-                          minutes_left, context=ctx, n_sims=n_sims)
+    sim = simulate_inplay(a, b, score[0], score[1], minutes_left,
+                          context=ctx, n_sims=n_sims)
     msg = build_live_message(a, b, state, sim, minutes_left)
+    if reason == "goal":
+        msg = "⚽ *GOAL!*\n" + msg
     ok, prov, detail = send_sms(_phone(), msg)
-    return "live-sent" if ok else f"live-send-failed: {detail}"
+    if ok:
+        _save_sent(home_code, away_code, score=score)
+    return (f"{'goal' if reason == 'goal' else 'live'}-sent"
+            if ok else f"live-send-failed: {detail}")
 
 
 def _phone():

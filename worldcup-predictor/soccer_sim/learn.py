@@ -101,9 +101,12 @@ def _nudge(state, code, factor, err):
     adj[factor] = round(max(lo, min(hi, adj[factor] * (1 + LEARN_RATE * err))), 4)
 
 
-def update_from_results():
+def update_from_results(hints=None):
     """Fetch real scores for unsettled predictions and learn from each.
-    Returns human-readable notes about what was scored and adjusted."""
+    Returns human-readable notes about what was scored and adjusted.
+    `hints` maps (home_code, away_code) -> (goals, goals) for results
+    already confirmed by another live source (e.g. ESPN at full time),
+    used when the slower results feed hasn't updated yet."""
     from .live.fixtures import fetch_result
     state = load_state()
     notes = []
@@ -112,7 +115,11 @@ def update_from_results():
             continue
         result = fetch_result(p["home_name"], p["away_name"])
         if not result or not result["finished"]:
-            continue
+            hint = (hints or {}).get((p["home"], p["away"]))
+            if hint is None:
+                continue
+            result = {"home_goals": hint[0], "away_goals": hint[1],
+                      "finished": True}
         gh, ga = result["home_goals"], result["away_goals"]
 
         # -- score the winner call (a level score after ET can't tell us
