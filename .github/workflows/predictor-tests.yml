@@ -1,0 +1,24 @@
+name: predictor-tests
+
+on:
+  push:
+    paths: ["worldcup-predictor/**"]
+  pull_request:
+    paths: ["worldcup-predictor/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worldcup-predictor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - name: Unit tests
+        run: python tests.py
+      - name: Offline smoke run
+        run: python main.py --neutral --sims 20000 --validate

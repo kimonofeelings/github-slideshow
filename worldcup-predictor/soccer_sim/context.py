@@ -120,9 +120,11 @@ def context_effects(ctx: MatchContext, team_a=None, team_b=None):
 
     # 7) rest + travel fatigue since the previous match.
     def freshness(rest, km):
+        # 4 days between matches is the tournament norm = full freshness;
+        # only shorter turnarounds cost anything.
         f = 1.0
-        if rest < 5:
-            f *= max(0.90, 1.0 - 0.025 * (5 - rest))
+        if rest < 4:
+            f *= max(0.90, 1.0 - 0.03 * (4 - rest))
         f *= 1.0 - min(max(km - 500, 0) / 10_000, 1.0) * 0.05
         return f
     fr_a = freshness(ctx.rest_days[0], ctx.travel_km[0])

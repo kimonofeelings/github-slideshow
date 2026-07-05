@@ -2,21 +2,56 @@
 Monte Carlo match simulator (fully vectorized with numpy).
 
 For each of N simulated matches:
-  1. Draw 90-minute goal counts for each team from Poisson(lambda),
-     where lambda comes from the player-matchup engine.
+  1. Draw the 90-minute scoreline from a Dixon-Coles-adjusted joint
+     Poisson grid. Independent Poissons systematically underprice
+     low-scoring draws (0-0, 1-1); the Dixon-Coles tau correction -
+     the standard fix in the football-modeling literature - reweights
+     those cells with correlation parameter rho.
   2. Assign every goal to a specific scorer via a multinomial draw over
      player scoring weights (position, finishing, minutes, form, pens).
   3. Knockout mode: level games go to 30' of extra time (reduced-rate
      Poisson), then a penalty shootout decided by penalty-taking quality
      vs the opposing keeper.
 
-100,000 simulations run in ~1s.
+100,000 simulations run in well under a second.
 """
 
 from dataclasses import dataclass, field
+from math import exp
+
 import numpy as np
 
 from .matchup import forecast_match, MatchForecast
+
+# Dixon-Coles low-score correlation. Negative rho boosts 0-0 and 1-1
+# and trims 1-0/0-1, matching observed World Cup scoreline frequencies.
+DC_RHO = -0.10
+GRID_MAX = 12          # scoreline grid covers 0..12 goals per side
+
+
+def _factorials(n):
+    out = np.ones(n + 1)
+    for i in range(2, n + 1):
+        out[i] = out[i - 1] * i
+    return out
+
+
+_FACT = _factorials(GRID_MAX)
+
+
+def scoreline_grid(lam_a, lam_b, rho=DC_RHO):
+    """Joint P(home=h, away=a) grid with the Dixon-Coles tau adjustment
+    applied to the four low-score cells, renormalized to sum to 1."""
+    k = np.arange(GRID_MAX + 1)
+    pa = np.exp(-lam_a) * lam_a ** k / _FACT
+    pb = np.exp(-lam_b) * lam_b ** k / _FACT
+    grid = np.outer(pa, pb)
+    grid[0, 0] *= 1 - lam_a * lam_b * rho
+    grid[0, 1] *= 1 + lam_a * rho
+    grid[1, 0] *= 1 + lam_b * rho
+    grid[1, 1] *= 1 - rho
+    np.clip(grid, 0.0, None, out=grid)
+    return grid / grid.sum()
 
 # Goal-scoring likelihood by position (per unit of attack rating).
 POSITION_GOAL_MULT = {
@@ -101,9 +136,11 @@ def simulate_match(team_a, team_b, n_sims=100_000, knockout=True, seed=42,
     fc = forecast_match(team_a, team_b, context=context)
     lam_a, lam_b = fc.home.lam, fc.away.lam
 
-    # --- 1) regulation goals -------------------------------------------------
-    g90_a = rng.poisson(lam_a, n_sims)
-    g90_b = rng.poisson(lam_b, n_sims)
+    # --- 1) regulation scoreline from the Dixon-Coles joint grid -------------
+    grid = scoreline_grid(lam_a, lam_b)
+    idx = rng.choice(grid.size, size=n_sims, p=grid.ravel())
+    g90_a = (idx // (GRID_MAX + 1)).astype(np.int64)
+    g90_b = (idx % (GRID_MAX + 1)).astype(np.int64)
 
     # --- 2) scorer assignment (regulation) -----------------------------------
     players_a, pw_a = scorer_weights(team_a)

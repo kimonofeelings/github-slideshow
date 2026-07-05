@@ -89,12 +89,39 @@ def main():
     ap.add_argument("--learn", action="store_true",
                     help="score past predictions against real results, "
                          "adjust team factors, and record today's forecasts")
+    ap.add_argument("--history", action="store_true",
+                    help="show the model's prediction ledger and accuracy")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
     if args.list_teams:
         for code, t in TEAMS.items():
             print(f"  {code}  {t.name}  ({len(t.players)} players)")
+        return
+
+    if args.history:
+        from soccer_sim import learn
+        state = learn.load_state()
+        print("PREDICTION LEDGER")
+        for h in state["history"]:
+            mark = ("✓" if h["called"] else
+                    "✗" if h["called"] is not None else "~")
+            print(f"  {mark} {h['match']}   "
+                  f"(predicted home {h['predicted_home']:.0%}"
+                  + (f", Brier {h['brier']:.2f}" if h["brier"] is not None
+                     else "") + ")")
+            for line in h.get("learned", []):
+                print(f"      learned: {line}")
+        pending = [p for p in state["predictions"] if not p["settled"]]
+        for p in pending:
+            print(f"  … {p['home']} vs {p['away']}: "
+                  f"{p['p_home_advance']:.0%} home, awaiting result")
+        print(f"  {learn.record_line()}")
+        adj = state["team_adj"]
+        if adj:
+            print("CURRENT TEAM ADJUSTMENTS (attack / defense-leak)")
+            for code, a in sorted(adj.items()):
+                print(f"  {code}: x{a['attack']:.3f} / x{a['leak']:.3f}")
         return
 
     knockout = not args.group_stage

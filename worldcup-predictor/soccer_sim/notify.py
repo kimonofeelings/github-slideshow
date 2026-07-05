@@ -93,6 +93,36 @@ def _flag(code):
     return FLAGS.get(code, "\U0001F3F3️")
 
 
+def _kickoff_pacific(ctx):
+    """'2026-07-06 00:00 UTC' -> 'Sun 5:00 PM PT' (best effort)."""
+    if not ctx or not ctx.kickoff_local or "UTC" not in ctx.kickoff_local:
+        return None
+    try:
+        from zoneinfo import ZoneInfo
+        dt = datetime.strptime(ctx.kickoff_local[:16], "%Y-%m-%d %H:%M")
+        dt = dt.replace(tzinfo=timezone.utc).astimezone(
+            ZoneInfo("America/Los_Angeles"))
+        return dt.strftime("%a %-I:%M %p PT").replace(" 0:", " 12:")
+    except Exception:
+        return None
+
+
+def _key_battle(fc):
+    """The most lopsided attacking zone in the match - the matchup that
+    drives the forecast more than any other."""
+    best = None
+    for tf, opp in ((fc.home, fc.away), (fc.away, fc.home)):
+        for zb in tf.zones.values():
+            if best is None or zb.multiplier > best[0].multiplier:
+                best = (zb, tf.team)
+    zb, team = best
+    if zb.multiplier < 1.12 or not zb.key_attackers or not zb.key_defenders:
+        return None
+    return (f"\U0001F511 {zb.key_attackers[0][0]} vs "
+            f"{zb.key_defenders[0][0]}'s zone (edge x{zb.multiplier:.2f} "
+            f"to {team.name})")
+
+
 def whatsapp_summary(results, extra=None):
     """Rich, sectioned message using WhatsApp *bold* and emoji."""
     stamp = datetime.now(timezone.utc).strftime("%A, %b %d")
@@ -105,6 +135,9 @@ def whatsapp_summary(results, extra=None):
         ctx = fc.context
         if ctx is not None:
             flags = []
+            ko = _kickoff_pacific(ctx)
+            if ko:
+                flags.append(ko)
             if ctx.roof_closed:
                 flags.append("roof closed")
             else:
@@ -119,9 +152,10 @@ def whatsapp_summary(results, extra=None):
             win, p = A, res.p_home_advance
         else:
             win, p = B, res.p_away_advance
+        upset = "  ⚠️ coin-flip territory" if p < 0.60 else ""
         lines.append(f"\U0001F52E *{win.name} to advance: {p:.0%}*"
                      + (f"  (pens {res.p_penalties:.0%})"
-                        if res.p_penalties > 0.10 else ""))
+                        if res.p_penalties > 0.10 else "") + upset)
         h, a, sp = res.top_scorelines[0]
         lines.append(f"⚽ Goals {res.avg_goals_home_90:.1f} - "
                      f"{res.avg_goals_away_90:.1f}  |  most likely "
@@ -129,6 +163,9 @@ def whatsapp_summary(results, extra=None):
         ta, tb = res.scorers_home[0], res.scorers_away[0]
         lines.append(f"⭐ {ta['name']} {ta['anytime']:.0%}  |  "
                      f"{tb['name']} {tb['anytime']:.0%}")
+        battle = _key_battle(fc)
+        if battle:
+            lines.append(battle)
         lines.append("")
     for line in extra or []:
         lines.append(f"\U0001F4C8 {line}")

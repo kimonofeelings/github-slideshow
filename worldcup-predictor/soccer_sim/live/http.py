@@ -11,6 +11,9 @@ import os
 import time
 import urllib.request
 
+RETRIES = 3            # total attempts per URL
+BACKOFF = (0, 1.5, 4)  # seconds to wait before each attempt
+
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))), ".cache", "live")
 
@@ -32,10 +35,17 @@ def get_json(url, ttl=900, headers=None, timeout=15):
         pass
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                **(headers or {})})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.load(r)
-    except Exception:
+    data = None
+    for attempt in range(RETRIES):
+        if BACKOFF[attempt]:
+            time.sleep(BACKOFF[attempt])
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = json.load(r)
+            break
+        except Exception:
+            continue
+    if data is None:
         return None
     try:
         with open(path, "w") as f:

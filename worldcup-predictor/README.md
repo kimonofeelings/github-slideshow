@@ -82,12 +82,25 @@ x opposing-defense-score x midfield-control x opposing-GK factor x team
 form x match-conditions`, clamped to [0.25, 4.0].
 
 **5. Monte Carlo (`soccer_sim/simulator.py`)**
-Goals per team per sim ~ Poisson(lambda), fully vectorized. Every goal is
+The 90-minute scoreline is drawn from a **Dixon-Coles-adjusted joint
+Poisson grid** (rho = -0.10): independent Poissons systematically
+underprice 0-0 and 1-1, and the Dixon-Coles tau correction — standard in
+the football-modeling literature — fixes exactly that, which matters
+doubly in knockouts where draws trigger extra time. Every goal is then
 assigned to a scorer via a multinomial over player weights:
 `attack^1.7 x position multiplier x minutes x form x fitness`, with a bump
 for penalty takers. Level knockout games play 30' of extra time at a reduced
 scoring rate; still-level games go to a shootout modeled from the top five
 takers' quality vs the opposing keeper.
+
+**5b. Self-learning (`soccer_sim/learn.py`, `--learn`)**
+Every run records its pre-match forecast; once the real result is
+available (fetched live), the prediction is scored — winner called,
+Brier score, goal error — and per-team attack/leak factors get nudged
+(max ~6% per match, clamped, fully auditable in
+`soccer_sim/data/model_state.json`). The matchup engine applies the
+learned factors to expected goals, so every miss makes tomorrow's
+forecast smarter. Inspect the ledger anytime with `--history`.
 
 **6. Validation (`--validate`)**
 By Poisson thinning, a player with share *p* of team goals scores with
@@ -212,13 +225,16 @@ as a class-project forecasting tool, not betting advice.
 
 ```
 main.py                         CLI entry point
+tests.py                        37-check test suite (runs in CI on push)
 soccer_sim/models.py            Player/Team classes, ratings, team scores
 soccer_sim/matchup.py           zone battles -> expected goals
 soccer_sim/context.py           stadium/weather/crowd/travel conditions
-soccer_sim/simulator.py         vectorized 100k-sim Monte Carlo engine
+soccer_sim/simulator.py         Dixon-Coles + 100k-sim Monte Carlo engine
+soccer_sim/learn.py             self-improving calibration from results
 soccer_sim/report.py            terminal report + JSON export
-soccer_sim/notify.py            SMS summary + Twilio/TextBelt/email senders
+soccer_sim/notify.py            WhatsApp/SMS formatting + provider chain
 soccer_sim/data/worldcup2026.py editable rosters + venue conditions
+soccer_sim/data/model_state.json prediction ledger + learned adjustments
 soccer_sim/live/                live fixtures, weather, venue DB, injuries
   fixtures.py   TheSportsDB     weather.py  Open-Meteo
   venues.py     16 WC stadiums  enrich.py   merge live -> MatchContext
