@@ -1,5 +1,5 @@
 {
- "bankroll": 1204.87,
+ "bankroll": 912.5,
  "start": 1000.0,
  "open": [
   {
@@ -10,9 +10,7 @@
    "edge": 0.174,
    "stake": 48.03,
    "placed": "2026-07-05 22:31Z"
-  }
- ],
- "settled": [
+  },
   {
    "match": "ARG-EGY",
    "team": "EGY",
@@ -20,10 +18,8 @@
    "model_p": 0.272,
    "edge": 0.137,
    "stake": 39.47,
-   "placed": "2026-07-05 22:31Z",
-   "won": true,
-   "pnl": 252.9,
-   "advanced": "EGY"
+   "placed": "2026-07-05 22:31Z"
   }
- ]
+ ],
+ "settled": []
 }

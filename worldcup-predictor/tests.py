@@ -36,13 +36,15 @@ def test_dixon_coles():
 
 
 def test_learning():
-    from soccer_sim import learn
+    from soccer_sim import learn, paper
     from soccer_sim.data.worldcup2026 import get_team
     from soccer_sim.simulator import simulate_match
 
     orig = learn.STATE_PATH
+    orig_paper = paper.STATE_PATH
     with tempfile.TemporaryDirectory() as tmp:
         learn.STATE_PATH = os.path.join(tmp, "state.json")
+        paper.STATE_PATH = os.path.join(tmp, "paper.json")
         learn._cache.update(mtime=None, state=None)
         try:
             res = simulate_match(get_team("ARG"), get_team("EGY"),
@@ -73,6 +75,7 @@ def test_learning():
                 check("never re-scored", learn.update_from_results() == [])
         finally:
             learn.STATE_PATH = orig
+            paper.STATE_PATH = orig_paper
             learn._cache.update(mtime=None, state=None)
 
 
@@ -125,6 +128,41 @@ def test_messages():
               "*Mexico" not in build_message([res]))
 
 
+def test_paper():
+    from soccer_sim import paper
+    from soccer_sim.data.worldcup2026 import get_team
+    from soccer_sim.simulator import simulate_match
+    orig = paper.STATE_PATH
+    with tempfile.TemporaryDirectory() as tmp:
+        paper.STATE_PATH = os.path.join(tmp, "paper.json")
+        try:
+            res = simulate_match(get_team("MEX"), get_team("ENG"),
+                                 n_sims=20000)
+            fake = {"england": 0.50, "mexico": 0.48}
+            with mock.patch("soccer_sim.paper.fetch_advance_prices",
+                            return_value=fake):
+                notes = paper.consider_bets([res])
+            check("paper bet placed on edge", any("ENG" in n for n in notes))
+            st = paper._load()
+            check("stake capped at 5%", st["open"][0]["stake"] <= 50.0)
+            check("bankroll reduced", st["bankroll"] < 1000)
+            with mock.patch("soccer_sim.paper.fetch_advance_prices",
+                            return_value=fake):
+                again = paper.consider_bets([res])
+            check("no duplicate bet on same match",
+                  len(paper._load()["open"]) == 1)
+            win_notes = paper.settle("MEX", "ENG", "ENG")
+            check("winning bet pays out", "WON" in win_notes[0])
+            st = paper._load()
+            check("payout ~= stake/price",
+                  abs(st["bankroll"] - (1000 - st["settled"][0]["stake"]
+                      + st["settled"][0]["stake"] / 0.50)) < 0.05)
+            check("re-settle is no-op",
+                  paper.settle("MEX", "ENG", "ENG") == [])
+        finally:
+            paper.STATE_PATH = orig
+
+
 def test_inplay():
     from soccer_sim.data.worldcup2026 import get_team
     from soccer_sim.inplay import simulate_inplay, minutes_left_from_kickoff
@@ -167,7 +205,7 @@ def test_simulation_sanity():
 
 if __name__ == "__main__":
     for fn in (test_dixon_coles, test_learning, test_context_bounds,
-               test_team_scores, test_messages, test_inplay,
+               test_team_scores, test_messages, test_paper, test_inplay,
                test_simulation_sanity):
         print(fn.__name__)
         fn()
