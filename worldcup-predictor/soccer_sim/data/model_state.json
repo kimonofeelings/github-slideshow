@@ -8,7 +8,7 @@
    "p_home_advance": 0.7284,
    "lam_home": 1.688,
    "lam_away": 0.967,
-   "recorded": "2026-07-05T15:01+00:00",
+   "recorded": "2026-07-05T22:31+00:00",
    "settled": false
   },
   {
@@ -31,9 +31,9 @@
    "home_name": "Mexico",
    "away_name": "England",
    "p_home_advance": 0.3214,
-   "lam_home": 1.014,
-   "lam_away": 1.483,
-   "recorded": "2026-07-05T15:01+00:00",
+   "lam_home": 1.021,
+   "lam_away": 1.493,
+   "recorded": "2026-07-05T22:31+00:00",
    "settled": false
   }
  ],

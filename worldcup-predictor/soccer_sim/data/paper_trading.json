@@ -1,0 +1,29 @@
+{
+ "bankroll": 1204.87,
+ "start": 1000.0,
+ "open": [
+  {
+   "match": "MEX-ENG",
+   "team": "ENG",
+   "price": 0.505,
+   "model_p": 0.679,
+   "edge": 0.174,
+   "stake": 48.03,
+   "placed": "2026-07-05 22:31Z"
+  }
+ ],
+ "settled": [
+  {
+   "match": "ARG-EGY",
+   "team": "EGY",
+   "price": 0.135,
+   "model_p": 0.272,
+   "edge": 0.137,
+   "stake": 39.47,
+   "placed": "2026-07-05 22:31Z",
+   "won": true,
+   "pnl": 252.9,
+   "advanced": "EGY"
+  }
+ ]
+}

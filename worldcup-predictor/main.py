@@ -163,10 +163,14 @@ def main():
                            args.seed, args.validate, args.save,
                            neutral=args.neutral, live=args.live))
 
+    paper_notes = []
     if args.learn and results:
-        from soccer_sim import learn
+        from soccer_sim import learn, paper
         for res in results:
             learn.record_prediction(res)
+        paper_notes = paper.consider_bets(results)
+        for n in paper_notes:
+            print(f"  - {n}")
 
     if not results:
         print("All fixtures in the data file have been played and scored. "
@@ -178,8 +182,10 @@ def main():
         from soccer_sim.notify import build_message, send_sms
         extra = []
         if args.learn:
-            from soccer_sim import learn
-            extra = learn_notes + [learn.record_line()]
+            from soccer_sim import learn, paper
+            bets = [n for n in paper_notes if not n.startswith("paper ")]
+            extra = learn_notes + bets + [learn.record_line(),
+                                          paper.summary_line()]
         message = build_message(results, extra)
         if args.text_preview:
             print("SMS PREVIEW" + f" ({len(message)} chars)\n" + "-" * 40)

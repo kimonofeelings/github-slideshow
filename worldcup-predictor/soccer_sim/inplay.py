@@ -175,7 +175,17 @@ def run_live_update(home_code, away_code, n_sims=1_000_000, force=False):
             return "already-graded"
         notes = learn.update_from_results(
             hints={(a.code, b.code): tuple(score)})
-        msg = build_ft_message(a, b, state, notes, learn.record_line())
+        # settle paper bets: ESPN's winner flag covers shootout outcomes
+        from . import paper
+        if state.get("winner") in ("home", "away"):
+            advanced = a.code if state["winner"] == "home" else b.code
+        else:
+            advanced = (a.code if score[0] > score[1]
+                        else b.code if score[1] > score[0] else None)
+        if advanced:
+            notes += paper.settle(a.code, b.code, advanced)
+        msg = build_ft_message(a, b, state, notes, learn.record_line()
+                               + "\n\U0001F4B0 " + paper.summary_line())
         ok, prov, detail = send_sms(_phone(), msg)
         if ok:
             _save_sent(home_code, away_code, score=score, ft_sent=True)

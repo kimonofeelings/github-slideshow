@@ -153,6 +153,10 @@ def update_from_results(hints=None):
         p["result"] = f"{gh}-{ga}"
         p["called"] = called
         p["brier"] = brier
+        if gh != ga:                      # settle paper bets on this match
+            from . import paper
+            notes.extend(paper.settle(p["home"], p["away"],
+                                      p["home"] if gh > ga else p["away"]))
         state["history"].append({
             "match": f"{p['home']} {gh}-{ga} {p['away']}",
             "predicted_home": p["p_home_advance"],

@@ -40,11 +40,17 @@ def fetch_live_state(home_name, away_name):
         state = st.get("type", {}).get("state", "")
         detail = st.get("type", {}).get("shortDetail", "") or ""
         m = re.match(r"(\d+)", st.get("displayClock") or "")
+        winner = None                      # who advanced (covers shootouts)
+        for side, comp in (("home", h), ("away", a)):
+            if comp.get("winner") is True:
+                winner = side
+                if h["team"]["displayName"].lower() != home_name.lower():
+                    winner = "away" if side == "home" else "home"
         return {
             "home_goals": gh, "away_goals": ga,
             "live": state == "in", "finished": state == "post",
             "minute": int(m.group(1)) if m else None,
             "halftime": detail.strip().upper() == "HT",
-            "detail": detail,
+            "detail": detail, "winner": winner,
         }
     return None
