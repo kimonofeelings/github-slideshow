@@ -20,7 +20,10 @@
    "lam_home": 1.678,
    "lam_away": 1.031,
    "recorded": "2026-07-05T15:01+00:00",
-   "settled": false
+   "settled": true,
+   "result": "1-2",
+   "called": false,
+   "brier": 0.4823
   },
   {
    "home": "MEX",
@@ -34,11 +37,31 @@
    "settled": false
   }
  ],
- "team_adj": {},
- "record": {
-  "matches": 0,
-  "winners_called": 0,
-  "brier_sum": 0.0
+ "team_adj": {
+  "BRA": {
+   "attack": 0.9758,
+   "leak": 1.0564
+  },
+  "NOR": {
+   "attack": 1.0564,
+   "leak": 0.9758
+  }
  },
- "history": []
+ "record": {
+  "matches": 1,
+  "winners_called": 0,
+  "brier_sum": 0.4823
+ },
+ "history": [
+  {
+   "match": "BRA 1-2 NOR",
+   "predicted_home": 0.6945,
+   "called": false,
+   "brier": 0.4823,
+   "learned": [
+    "BRA attack -2% (scored 1 vs 1.7 expected); NOR defense tighter",
+    "NOR attack +6% (scored 2 vs 1.0 expected); BRA defense leakier"
+   ]
+  }
+ ]
 }
