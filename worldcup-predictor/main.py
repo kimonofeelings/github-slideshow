@@ -91,12 +91,23 @@ def main():
                          "adjust team factors, and record today's forecasts")
     ap.add_argument("--history", action="store_true",
                     help="show the model's prediction ledger and accuracy")
+    ap.add_argument("--live-match", action="store_true",
+                    help="one live poll of --home vs --away: fetch the real "
+                         "current score, re-simulate from that state, and "
+                         "text updated odds (full-time grades the model)")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
     if args.list_teams:
         for code, t in TEAMS.items():
             print(f"  {code}  {t.name}  ({len(t.players)} players)")
+        return
+
+    if args.live_match:
+        _load_sms_env()
+        from soccer_sim.inplay import run_live_update
+        outcome = run_live_update(args.home, args.away, n_sims=args.sims)
+        print(f"live update: {outcome}")
         return
 
     if args.history:

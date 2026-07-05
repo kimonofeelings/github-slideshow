@@ -125,6 +125,32 @@ def test_messages():
               "*Mexico" not in build_message([res]))
 
 
+def test_inplay():
+    from soccer_sim.data.worldcup2026 import get_team
+    from soccer_sim.inplay import simulate_inplay, minutes_left_from_kickoff
+    a, b = get_team("MEX"), get_team("ENG")
+    pre = simulate_inplay(a, b, 0, 0, 90, n_sims=50000)["p_advance_a"]
+    ht_lead = simulate_inplay(a, b, 1, 0, 45, n_sims=50000)["p_advance_a"]
+    late_lead = simulate_inplay(a, b, 1, 0, 10, n_sims=50000)["p_advance_a"]
+    check("lead at HT beats kickoff odds", ht_lead > pre + 0.2)
+    check("late lead beats HT lead", late_lead > ht_lead + 0.1)
+    two_down = simulate_inplay(a, b, 0, 2, 30, n_sims=50000)["p_advance_a"]
+    check("two down late is <5%", two_down < 0.05)
+    check("probs complementary", abs(
+        simulate_inplay(a, b, 1, 1, 20, n_sims=20000)["p_advance_a"]
+        + simulate_inplay(a, b, 1, 1, 20, n_sims=20000)["p_advance_b"]
+        - 1.0) < 0.02)
+    from datetime import datetime, timedelta
+    ko = (datetime.utcnow() - timedelta(minutes=70)).strftime(
+        "%Y-%m-%dT%H:%M:%S")
+    left = minutes_left_from_kickoff(ko)
+    check("clock estimator ~37' left after 70 real minutes",
+          35 < left < 39)
+    check("pre-kickoff clock says 90", minutes_left_from_kickoff(
+        (datetime.utcnow() + timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%S")) == 90.0)
+
+
 def test_simulation_sanity():
     from soccer_sim.data.worldcup2026 import get_team
     from soccer_sim.simulator import simulate_match, analytic_anytime_check
@@ -141,7 +167,8 @@ def test_simulation_sanity():
 
 if __name__ == "__main__":
     for fn in (test_dixon_coles, test_learning, test_context_bounds,
-               test_team_scores, test_messages, test_simulation_sanity):
+               test_team_scores, test_messages, test_inplay,
+               test_simulation_sanity):
         print(fn.__name__)
         fn()
     print(f"\nALL TESTS PASSED ({PASS} checks)")

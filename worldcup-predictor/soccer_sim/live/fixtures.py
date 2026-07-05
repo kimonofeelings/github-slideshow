@@ -40,6 +40,33 @@ def fetch_fixture(home_name, away_name, season="2026"):
 
 
 FINISHED_STATUSES = {"match finished", "ft", "aet", "pen", "finished"}
+LIVE_STATUSES = {"1h", "2h", "ht", "et", "break time", "live",
+                 "in progress", "p"}
+
+
+def fetch_live_state(home_name, away_name, season="2026"):
+    """Current state of a possibly-in-progress match, caller's team order.
+    Returns dict(home_goals, away_goals, status, live, finished) or None.
+    Uses a short cache TTL so in-match polls see fresh scores."""
+    for a, b, swapped in ((home_name, away_name, False),
+                          (away_name, home_name, True)):
+        data = get_json(SEARCH.format(a=_slug(a), b=_slug(b)), ttl=120)
+        for ev in (data or {}).get("event") or []:
+            if "world cup" not in (ev.get("strLeague") or "").lower():
+                continue
+            if season and ev.get("strSeason") not in (season, None, ""):
+                continue
+            status = (ev.get("strStatus") or "").strip().lower()
+            hs, as_ = ev.get("intHomeScore"), ev.get("intAwayScore")
+            gh = int(hs) if hs is not None else 0
+            ga = int(as_) if as_ is not None else 0
+            if swapped:
+                gh, ga = ga, gh
+            return {"home_goals": gh, "away_goals": ga, "status": status,
+                    "live": status in LIVE_STATUSES,
+                    "finished": status in FINISHED_STATUSES,
+                    "kickoff_utc": ev.get("strTimestamp")}
+    return None
 
 
 def fetch_result(home_name, away_name, season="2026"):
