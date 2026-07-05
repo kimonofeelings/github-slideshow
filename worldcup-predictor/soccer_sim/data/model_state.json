@@ -5,10 +5,10 @@
    "away": "EGY",
    "home_name": "Argentina",
    "away_name": "Egypt",
-   "p_home_advance": 0.7294,
+   "p_home_advance": 0.7284,
    "lam_home": 1.688,
    "lam_away": 0.967,
-   "recorded": "2026-07-05T08:46+00:00",
+   "recorded": "2026-07-05T08:49+00:00",
    "settled": false
   },
   {
@@ -16,10 +16,10 @@
    "away": "NOR",
    "home_name": "Brazil",
    "away_name": "Norway",
-   "p_home_advance": 0.6927,
-   "lam_home": 1.761,
-   "lam_away": 1.099,
-   "recorded": "2026-07-05T08:46+00:00",
+   "p_home_advance": 0.6932,
+   "lam_home": 1.682,
+   "lam_away": 1.038,
+   "recorded": "2026-07-05T08:49+00:00",
    "settled": false
   },
   {
@@ -27,10 +27,10 @@
    "away": "ENG",
    "home_name": "Mexico",
    "away_name": "England",
-   "p_home_advance": 0.3217,
-   "lam_home": 1.016,
-   "lam_away": 1.486,
-   "recorded": "2026-07-05T08:46+00:00",
+   "p_home_advance": 0.3213,
+   "lam_home": 1.007,
+   "lam_away": 1.474,
+   "recorded": "2026-07-05T08:49+00:00",
    "settled": false
   }
  ],

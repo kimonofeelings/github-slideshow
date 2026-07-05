@@ -65,7 +65,7 @@ def main():
     ap = argparse.ArgumentParser(description="Soccer match Monte Carlo predictor")
     ap.add_argument("--home", default="ARG")
     ap.add_argument("--away", default="EGY")
-    ap.add_argument("--sims", type=int, default=100_000)
+    ap.add_argument("--sims", type=int, default=1_000_000)
     ap.add_argument("--group-stage", action="store_true",
                     help="90 minutes only (draws stand), no ET/pens")
     ap.add_argument("--seed", type=int, default=42,
