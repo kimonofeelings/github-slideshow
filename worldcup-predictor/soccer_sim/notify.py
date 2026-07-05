@@ -91,13 +91,16 @@ def _post_form(url, fields, headers=None, timeout=20):
 
 
 def _send_twilio(phone, message):
-    sid = os.environ.get("TWILIO_ACCOUNT_SID")
+    sid = os.environ.get("TWILIO_ACCOUNT_SID")      # ACxxxx (always needed)
     tok = os.environ.get("TWILIO_AUTH_TOKEN")
+    key = os.environ.get("TWILIO_API_KEY")           # SKxxxx (alternative
+    secret = os.environ.get("TWILIO_API_SECRET")     #  auth via API key)
     src = os.environ.get("TWILIO_FROM")
-    if not (sid and tok and src):
+    if not (sid and src and (tok or (key and secret))):
         return None
     url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
-    auth = b64encode(f"{sid}:{tok}".encode()).decode()
+    user, pw = (key, secret) if key and secret else (sid, tok)
+    auth = b64encode(f"{user}:{pw}".encode()).decode()
     try:
         body = _post_form(url, {"To": phone, "From": src, "Body": message},
                           headers={"Authorization": f"Basic {auth}"})
