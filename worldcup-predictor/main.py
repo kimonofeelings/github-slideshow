@@ -163,12 +163,12 @@ def main():
                            args.seed, args.validate, args.save,
                            neutral=args.neutral, live=args.live))
 
-    paper_notes = []
+    paper_notes, paper_placed = [], []
     if args.learn and results:
         from soccer_sim import learn, paper
         for res in results:
             learn.record_prediction(res)
-        paper_notes = paper.consider_bets(results)
+        paper_notes, paper_placed = paper.consider_bets(results)
         for n in paper_notes:
             print(f"  - {n}")
 
@@ -210,6 +210,12 @@ def main():
                 print(f"\nText sent via {provider}: {detail}")
             else:
                 print(f"\nText NOT sent. {detail}")
+            if ok and paper_placed:
+                from soccer_sim import paper
+                slip_ok, _, slip_detail = send_sms(
+                    phone, paper.build_bet_slip(paper_placed))
+                print("Bet slip sent" if slip_ok
+                      else f"Bet slip NOT sent: {slip_detail}")
 
 
 if __name__ == "__main__":

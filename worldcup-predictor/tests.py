@@ -141,16 +141,20 @@ def test_paper():
             fake = {"england": 0.50, "mexico": 0.48}
             with mock.patch("soccer_sim.paper.fetch_advance_prices",
                             return_value=fake):
-                notes = paper.consider_bets([res])
+                notes, placed = paper.consider_bets([res])
             check("paper bet placed on edge", any("ENG" in n for n in notes))
+            check("placed list returned", len(placed) == 1)
+            check("bet slip mentions stake and payout",
+                  "$" in paper.build_bet_slip(placed)
+                  and "pays" in paper.build_bet_slip(placed))
             st = paper._load()
             check("stake capped at 5%", st["open"][0]["stake"] <= 50.0)
             check("bankroll reduced", st["bankroll"] < 1000)
             with mock.patch("soccer_sim.paper.fetch_advance_prices",
                             return_value=fake):
-                again = paper.consider_bets([res])
+                _, again = paper.consider_bets([res])
             check("no duplicate bet on same match",
-                  len(paper._load()["open"]) == 1)
+                  len(paper._load()["open"]) == 1 and again == [])
             win_notes = paper.settle("MEX", "ENG", "ENG")
             check("winning bet pays out", "WON" in win_notes[0])
             st = paper._load()

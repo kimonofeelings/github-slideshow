@@ -84,12 +84,14 @@ def _kelly_stake(bankroll, p_win, price):
 
 def consider_bets(results):
     """Given fresh SimulationResults, place at most one paper bet per
-    match on the biggest model-vs-market edge. Returns note lines."""
+    match on the biggest model-vs-market edge.
+    Returns (note_lines, newly_placed_bets)."""
     prices = fetch_advance_prices()
     if not prices:
-        return ["paper: market prices unavailable - no bets placed"]
+        return ["paper: market prices unavailable - no bets placed"], []
     state = _load()
     notes = []
+    placed = []
     open_matches = {b["match"] for b in state["open"]}
     settled_matches = {b["match"] for b in state["settled"]}
 
@@ -117,17 +119,39 @@ def consider_bets(results):
             notes.append(f"paper {match}: edge on {code} but stake too "
                          f"small - pass")
             continue
-        state["open"].append({
+        bet = {
             "match": match, "team": code, "price": q,
             "model_p": round(p_model, 3), "edge": round(edge, 3),
             "stake": stake, "placed": time.strftime("%Y-%m-%d %H:%MZ",
-                                                    time.gmtime())})
+                                                    time.gmtime())}
+        state["open"].append(bet)
+        placed.append(bet)
         state["bankroll"] = round(state["bankroll"] - stake, 2)
         notes.append(f"paper: ${stake:.0f} on {code} to advance @ "
                      f"{q:.0%} market vs {p_model:.0%} model "
                      f"(edge +{edge:.0%})")
     _save(state)
-    return notes
+    return notes, placed
+
+
+def build_bet_slip(bets, title="PAPER BET SLIP"):
+    """WhatsApp-formatted slip for a list of bets (fake money)."""
+    from .notify import FLAGS
+    state = _load()
+    lines = [f"\U0001F39F *{title}*"]
+    for b in bets:
+        flag = FLAGS.get(b["team"], "")
+        payout = b["stake"] / b["price"]
+        lines.append(
+            f"\U0001F4B5 *${b['stake']:.0f} on {flag} {b['team']} to "
+            f"advance* ({b['match']})\n"
+            f"   @ {b['price']:.0%} market vs *{b['model_p']:.0%} model* "
+            f"(edge +{b['edge']:.0%})\n"
+            f"   pays ${payout:.0f} if it hits")
+    lines.append(f"\U0001F3E6 Bankroll: ${state['bankroll']:.0f} cash + "
+                 f"${sum(b['stake'] for b in state['open']):.0f} at risk")
+    lines.append("_Fake money - measuring the model's edge_")
+    return "\n".join(lines)
 
 
 def settle(home_code, away_code, advanced_code):
