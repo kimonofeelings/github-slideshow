@@ -15,6 +15,7 @@ full per-zone breakdown so you can inspect *why* the model favors a team.
 from dataclasses import dataclass, field
 from .models import Team
 from .context import MatchContext, NEUTRAL, context_effects
+from .learn import team_adjustments
 
 # Baseline expected goals per team in an evenly-matched knockout game.
 # (World Cup knockout matches average ~2.4-2.6 total goals in 90'.)
@@ -118,6 +119,7 @@ class TeamForecast:
     att_score_mult: float = 1.0      # own attack score vs baseline
     def_score_mult: float = 1.0      # opponent defense score suppression
     ctx_mult: float = 1.0            # match-conditions multiplier
+    learn_mult: float = 1.0          # learned from past results
 
 
 @dataclass
@@ -187,8 +189,14 @@ def _forecast_side(attacking: Team, defending: Team,
     def_mult = max(0.70, min(1.40,
         (TEAM_SCORE_BASELINE / max(opp_def_score, 1e-6)) ** DEF_SCORE_ELASTICITY))
 
+    # 6) online-learned corrections from previously scored matches:
+    #    own attacking record x how leaky the opponent has proven to be
+    adj = team_adjustments()
+    learn_mult = (adj.get(attacking.code, {}).get("attack", 1.0)
+                  * adj.get(defending.code, {}).get("leak", 1.0))
+
     lam = (BASE_XG * blended * mid_mult * gk_mult * form_mult
-           * att_mult * def_mult * ctx_mult)
+           * att_mult * def_mult * ctx_mult * learn_mult)
     lam = max(0.25, min(4.0, lam))
 
     return TeamForecast(team=attacking, lam=lam, zones=zones,
@@ -197,4 +205,4 @@ def _forecast_side(attacking: Team, defending: Team,
                         attack_score=att_score,
                         defense_score=attacking.defense_score(),
                         att_score_mult=att_mult, def_score_mult=def_mult,
-                        ctx_mult=ctx_mult)
+                        ctx_mult=ctx_mult, learn_mult=learn_mult)

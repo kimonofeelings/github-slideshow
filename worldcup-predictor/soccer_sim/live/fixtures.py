@@ -37,3 +37,30 @@ def fetch_fixture(home_name, away_name, season="2026"):
                 "swapped": swapped,
             }
     return None
+
+
+FINISHED_STATUSES = {"match finished", "ft", "aet", "pen", "finished"}
+
+
+def fetch_result(home_name, away_name, season="2026"):
+    """Final score for a played fixture, in the caller's team order.
+    Returns dict(home_goals, away_goals, finished) or None. Scores can
+    appear mid-match, so `finished` gates on the status field."""
+    for a, b, swapped in ((home_name, away_name, False),
+                          (away_name, home_name, True)):
+        data = get_json(SEARCH.format(a=_slug(a), b=_slug(b)), ttl=900)
+        for ev in (data or {}).get("event") or []:
+            if "world cup" not in (ev.get("strLeague") or "").lower():
+                continue
+            if season and ev.get("strSeason") not in (season, None, ""):
+                continue
+            hs, as_ = ev.get("intHomeScore"), ev.get("intAwayScore")
+            if hs is None or as_ is None:
+                return None
+            gh, ga = int(hs), int(as_)
+            if swapped:
+                gh, ga = ga, gh
+            status = (ev.get("strStatus") or "").strip().lower()
+            return {"home_goals": gh, "away_goals": ga,
+                    "finished": status in FINISHED_STATUSES}
+    return None

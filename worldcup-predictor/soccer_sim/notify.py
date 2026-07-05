@@ -70,14 +70,82 @@ def _match_line(res):
     return " | ".join(bits)
 
 
-def sms_summary(results):
+def sms_summary(results, extra=None):
     """One compact text for a list of SimulationResult objects."""
     stamp = datetime.now(timezone.utc).strftime("%b %d %H:%M UTC")
     lines = [f"WC26 PREDICTOR - {stamp}"]
     for res in results:
         lines.append(_match_line(res))
+    for line in extra or []:
+        lines.append(line)
     lines.append(f"({results[0].n_sims:,} sims/match)")
     return "\n".join(lines)
+
+
+FLAGS = {"ARG": "\U0001F1E6\U0001F1F7", "EGY": "\U0001F1EA\U0001F1EC",
+         "BRA": "\U0001F1E7\U0001F1F7", "NOR": "\U0001F1F3\U0001F1F4",
+         "MEX": "\U0001F1F2\U0001F1FD",
+         "ENG": "\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E"
+                "\U000E0067\U000E007F"}
+
+
+def _flag(code):
+    return FLAGS.get(code, "\U0001F3F3️")
+
+
+def whatsapp_summary(results, extra=None):
+    """Rich, sectioned message using WhatsApp *bold* and emoji."""
+    stamp = datetime.now(timezone.utc).strftime("%A, %b %d")
+    lines = [f"⚽ *WORLD CUP PREDICTOR* — {stamp}", ""]
+    for res in results:
+        fc = res.forecast
+        A, B = fc.home.team, fc.away.team
+        lines.append(f"{_flag(A.code)} *{A.name} vs {B.name}* {_flag(B.code)}")
+
+        ctx = fc.context
+        if ctx is not None:
+            flags = []
+            if ctx.roof_closed:
+                flags.append("roof closed")
+            else:
+                flags.append(f"{ctx.temp_c:.0f}°C")
+                if ctx.rain > 0.3:
+                    flags.append("\U0001F327️ rain")
+            if ctx.altitude_m >= 1500:
+                flags.append(f"⛰️ {ctx.altitude_m:,}m altitude")
+            lines.append(f"\U0001F3DF {ctx.venue} ({', '.join(flags)})")
+
+        if res.p_home_advance >= 0.5:
+            win, p = A, res.p_home_advance
+        else:
+            win, p = B, res.p_away_advance
+        lines.append(f"\U0001F52E *{win.name} to advance: {p:.0%}*"
+                     + (f"  (pens {res.p_penalties:.0%})"
+                        if res.p_penalties > 0.10 else ""))
+        h, a, sp = res.top_scorelines[0]
+        lines.append(f"⚽ Goals {res.avg_goals_home_90:.1f} - "
+                     f"{res.avg_goals_away_90:.1f}  |  most likely "
+                     f"*{h}-{a}* ({sp:.0%})")
+        ta, tb = res.scorers_home[0], res.scorers_away[0]
+        lines.append(f"⭐ {ta['name']} {ta['anytime']:.0%}  |  "
+                     f"{tb['name']} {tb['anytime']:.0%}")
+        lines.append("")
+    for line in extra or []:
+        lines.append(f"\U0001F4C8 {line}")
+    if extra:
+        lines.append("")
+    lines.append(f"_{results[0].n_sims:,} simulations per match, live venue "
+                 f"& weather data_")
+    lines.append("_Reply anything to keep daily delivery active_")
+    return "\n".join(lines)
+
+
+def build_message(results, extra=None):
+    """Pick the format for the provider that will actually deliver:
+    rich for WhatsApp, compact for plain SMS."""
+    if os.environ.get("TWILIO_WHATSAPP_FROM"):
+        return whatsapp_summary(results, extra)
+    return sms_summary(results, extra)
 
 
 # --------------------------------------------------------------------------

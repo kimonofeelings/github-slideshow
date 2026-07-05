@@ -1,0 +1,44 @@
+{
+ "predictions": [
+  {
+   "home": "ARG",
+   "away": "EGY",
+   "home_name": "Argentina",
+   "away_name": "Egypt",
+   "p_home_advance": 0.7237,
+   "lam_home": 1.646,
+   "lam_away": 0.943,
+   "recorded": "2026-07-05T08:35+00:00",
+   "settled": false
+  },
+  {
+   "home": "BRA",
+   "away": "NOR",
+   "home_name": "Brazil",
+   "away_name": "Norway",
+   "p_home_advance": 0.6902,
+   "lam_home": 1.717,
+   "lam_away": 1.071,
+   "recorded": "2026-07-05T08:35+00:00",
+   "settled": false
+  },
+  {
+   "home": "MEX",
+   "away": "ENG",
+   "home_name": "Mexico",
+   "away_name": "England",
+   "p_home_advance": 0.3309,
+   "lam_home": 1.01,
+   "lam_away": 1.47,
+   "recorded": "2026-07-05T08:35+00:00",
+   "settled": false
+  }
+ ],
+ "team_adj": {},
+ "record": {
+  "matches": 0,
+  "winners_called": 0,
+  "brier_sum": 0.0
+ },
+ "history": []
+}

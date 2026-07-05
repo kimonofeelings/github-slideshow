@@ -46,13 +46,15 @@ def print_report(res: SimulationResult, validate=False):
           f"vs-def x{fc.home.def_score_mult:.2f}, "
           f"midfield x{fc.home.midfield_mult:.2f}, "
           f"vs-GK x{fc.home.gk_mult:.2f}, form x{fc.home.form_mult:.2f}, "
-          f"conditions x{fc.home.ctx_mult:.2f})")
+          f"conditions x{fc.home.ctx_mult:.2f}, "
+          f"learned x{fc.home.learn_mult:.2f})")
     print(f"  {B.name:<14} lambda = {fc.away.lam:.2f}"
           f"   (attack x{fc.away.att_score_mult:.2f}, "
           f"vs-def x{fc.away.def_score_mult:.2f}, "
           f"midfield x{fc.away.midfield_mult:.2f}, "
           f"vs-GK x{fc.away.gk_mult:.2f}, form x{fc.away.form_mult:.2f}, "
-          f"conditions x{fc.away.ctx_mult:.2f})")
+          f"conditions x{fc.away.ctx_mult:.2f}, "
+          f"learned x{fc.away.learn_mult:.2f})")
 
     print(f"\nZONE MATCHUPS ({A.name} attacking -> {B.name} defending)")
     for z, label in (("L", "Left "), ("C", "Center"), ("R", "Right ")):

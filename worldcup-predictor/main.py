@@ -86,6 +86,9 @@ def main():
                          "PREDICTOR_PHONE); see README for provider setup")
     ap.add_argument("--text-preview", action="store_true",
                     help="print the exact SMS without sending it")
+    ap.add_argument("--learn", action="store_true",
+                    help="score past predictions against real results, "
+                         "adjust team factors, and record today's forecasts")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
@@ -95,9 +98,25 @@ def main():
         return
 
     knockout = not args.group_stage
+    learn_notes = []
+    if args.learn:
+        from soccer_sim import learn
+        learn_notes = learn.update_from_results()
+        if learn_notes:
+            print("LEARNED FROM RESULTS")
+            for n in learn_notes:
+                print(f"  - {n}")
+
     results = []
     if args.fixtures:
         for h, a in FIXTURES:
+            if args.learn:
+                from soccer_sim import learn
+                th, ta = get_team(h), get_team(a)
+                if learn.is_settled(th.code, ta.code):
+                    print(f"(skipping {h} vs {a}: already played "
+                          f"and scored)\n")
+                    continue
             results.append(run(h, a, args.sims, knockout, args.seed,
                                args.validate, args.save,
                                neutral=args.neutral, live=args.live))
@@ -106,10 +125,24 @@ def main():
                            args.seed, args.validate, args.save,
                            neutral=args.neutral, live=args.live))
 
+    if args.learn and results:
+        from soccer_sim import learn
+        for res in results:
+            learn.record_prediction(res)
+
+    if not results:
+        print("All fixtures in the data file have been played and scored. "
+              "Add upcoming fixtures to soccer_sim/data/worldcup2026.py.")
+        return
+
     if args.text is not None or args.text_preview:
         _load_sms_env()
-        from soccer_sim.notify import sms_summary, send_sms
-        message = sms_summary(results)
+        from soccer_sim.notify import build_message, send_sms
+        extra = []
+        if args.learn:
+            from soccer_sim import learn
+            extra = learn_notes + [learn.record_line()]
+        message = build_message(results, extra)
         if args.text_preview:
             print("SMS PREVIEW" + f" ({len(message)} chars)\n" + "-" * 40)
             print(message)
