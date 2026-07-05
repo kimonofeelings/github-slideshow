@@ -90,19 +90,26 @@ def _post_form(url, fields, headers=None, timeout=20):
         return r.read().decode()
 
 
-def _send_twilio(phone, message):
+def _send_twilio(phone, message, whatsapp=False):
     sid = os.environ.get("TWILIO_ACCOUNT_SID")      # ACxxxx (always needed)
     tok = os.environ.get("TWILIO_AUTH_TOKEN")
     key = os.environ.get("TWILIO_API_KEY")           # SKxxxx (alternative
     secret = os.environ.get("TWILIO_API_SECRET")     #  auth via API key)
-    src = os.environ.get("TWILIO_FROM")
+    src = (os.environ.get("TWILIO_WHATSAPP_FROM") if whatsapp
+           else os.environ.get("TWILIO_FROM"))
     if not (sid and src and (tok or (key and secret))):
         return None
+    to = phone
+    if whatsapp:
+        # WhatsApp sandbox: both sides carry the whatsapp: prefix
+        if not src.startswith("whatsapp:"):
+            src = "whatsapp:" + src
+        to = "whatsapp:" + phone
     url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
     user, pw = (key, secret) if key and secret else (sid, tok)
     auth = b64encode(f"{user}:{pw}".encode()).decode()
     try:
-        body = _post_form(url, {"To": phone, "From": src, "Body": message},
+        body = _post_form(url, {"To": to, "From": src, "Body": message},
                           headers={"Authorization": f"Basic {auth}"})
     except urllib.error.HTTPError as e:
         # Twilio explains rejections (bad creds, unverified number, ...)
@@ -153,9 +160,16 @@ def _send_email_gateway(phone, message):
     return "sent"
 
 
+def _send_twilio_whatsapp(phone, message):
+    return _send_twilio(phone, message, whatsapp=True)
+
+
 # Explicitly-configured providers first; TextBelt last because its shared
 # free key always "qualifies" and should not shadow a real Twilio setup.
-PROVIDERS = [("Twilio", _send_twilio),
+# WhatsApp (sandbox: no number verification needed) beats plain SMS when
+# TWILIO_WHATSAPP_FROM is set, since unverified SMS numbers get blocked.
+PROVIDERS = [("Twilio WhatsApp", _send_twilio_whatsapp),
+             ("Twilio", _send_twilio),
              ("Email->SMS gateway", _send_email_gateway),
              ("TextBelt", _send_textbelt)]
 
