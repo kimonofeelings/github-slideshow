@@ -177,11 +177,78 @@ def whatsapp_summary(results, extra=None):
     return "\n".join(lines)
 
 
-def build_message(results, extra=None):
+COUNTRY_FLAGS = {
+    "portugal": "\U0001F1F5\U0001F1F9", "spain": "\U0001F1EA\U0001F1F8",
+    "united states": "\U0001F1FA\U0001F1F8", "belgium": "\U0001F1E7\U0001F1EA",
+    "switzerland": "\U0001F1E8\U0001F1ED", "colombia": "\U0001F1E8\U0001F1F4",
+    "france": "\U0001F1EB\U0001F1F7", "morocco": "\U0001F1F2\U0001F1E6",
+    "argentina": "\U0001F1E6\U0001F1F7", "egypt": "\U0001F1EA\U0001F1EC",
+    "brazil": "\U0001F1E7\U0001F1F7", "norway": "\U0001F1F3\U0001F1F4",
+    "mexico": "\U0001F1F2\U0001F1FD", "england": FLAGS["ENG"],
+    "germany": "\U0001F1E9\U0001F1EA", "netherlands": "\U0001F1F3\U0001F1F1",
+    "japan": "\U0001F1EF\U0001F1F5", "senegal": "\U0001F1F8\U0001F1F3",
+    "croatia": "\U0001F1ED\U0001F1F7", "uruguay": "\U0001F1FA\U0001F1FE",
+    "italy": "\U0001F1EE\U0001F1F9", "canada": "\U0001F1E8\U0001F1E6",
+}
+
+
+def other_matches_section(modeled_names):
+    """Market-implied lines for every upcoming World Cup game that the
+    player-level model doesn't cover. Probabilities come from Polymarket
+    advancement prices, normalized head-to-head."""
+    from .live.espn import fetch_upcoming
+    from .paper import fetch_advance_prices
+    fixtures = fetch_upcoming()
+    prices = fetch_advance_prices()
+    # ESPN display names -> Polymarket market names
+    aliases = {"united states": "usa", "turkey": "turkiye",
+               "czech republic": "czechia", "south korea": "south korea",
+               "côte d'ivoire": "ivory coast"}
+    lines = []
+    for fx in fixtures:
+        h, a = fx["home"], fx["away"]
+        if {h.lower(), a.lower()} & modeled_names:
+            continue
+        if fx["state"] == "post":
+            continue
+        ph = prices.get(aliases.get(h.lower(), h.lower()))
+        pa = prices.get(aliases.get(a.lower(), a.lower()))
+        when = ""
+        try:
+            from zoneinfo import ZoneInfo
+            dt = datetime.fromisoformat(fx["date_utc"].replace("Z", "+00:00"))
+            dt = dt.astimezone(ZoneInfo("America/Los_Angeles"))
+            when = dt.strftime("%a %-I:%M%p PT ").replace("AM", "am").replace("PM", "pm")
+        except Exception:
+            pass
+        fh = COUNTRY_FLAGS.get(h.lower(), "")
+        fa = COUNTRY_FLAGS.get(a.lower(), "")
+        if ph and pa and (ph + pa) > 0.1:
+            p = ph / (ph + pa)
+            lead, pl = (h, p) if p >= 0.5 else (a, 1 - p)
+            lines.append(f"{when}{fh} {h} vs {a} {fa} — *{lead} {pl:.0%}*")
+        else:
+            lines.append(f"{when}{fh} {h} vs {a} {fa}")
+    if not lines:
+        return []
+    return ["\U0001F4C5 *OTHER GAMES* (market odds — no rosters yet)"] + lines
+
+
+def build_message(results, extra=None, include_other=True):
     """Pick the format for the provider that will actually deliver:
     rich for WhatsApp, compact for plain SMS."""
+    modeled = set()
+    for res in results:
+        modeled.add(res.forecast.home.team.name.lower())
+        modeled.add(res.forecast.away.team.name.lower())
     if os.environ.get("TWILIO_WHATSAPP_FROM"):
-        return whatsapp_summary(results, extra)
+        msg = whatsapp_summary(results, extra)
+        if include_other:
+            section = other_matches_section(modeled)
+            if section:
+                head, _, tail = msg.partition("\n_")
+                msg = head + "\n" + "\n".join(section) + "\n\n_" + tail
+        return msg
     return sms_summary(results, extra)
 
 
