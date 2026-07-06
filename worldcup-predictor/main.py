@@ -95,12 +95,22 @@ def main():
                     help="one live poll of --home vs --away: fetch the real "
                          "current score, re-simulate from that state, and "
                          "text updated odds (full-time grades the model)")
+    ap.add_argument("--inbox", action="store_true",
+                    help="answer any new text-message commands (ODDS, BETS, "
+                         "RECORD, LIVE, MENU) and exit")
     ap.add_argument("--list-teams", action="store_true")
     args = ap.parse_args()
 
     if args.list_teams:
         for code, t in TEAMS.items():
             print(f"  {code}  {t.name}  ({len(t.players)} players)")
+        return
+
+    if args.inbox:
+        _load_sms_env()
+        from soccer_sim.inbox import process
+        for action in process() or ["inbox: nothing new"]:
+            print(action)
         return
 
     if args.live_match:
@@ -177,9 +187,19 @@ def main():
               "Add upcoming fixtures to soccer_sim/data/worldcup2026.py.")
         return
 
+    if args.learn:
+        # answer any text commands that arrived since the last run
+        _load_sms_env()
+        try:
+            from soccer_sim.inbox import process as inbox_process
+            for action in inbox_process():
+                print(f"  - {action}")
+        except Exception:
+            pass
+
     if args.text is not None or args.text_preview:
         _load_sms_env()
-        from soccer_sim.notify import build_message, send_sms
+        from soccer_sim.notify import build_message, send_long as send_sms
         extra = []
         if args.learn:
             from soccer_sim import learn, paper

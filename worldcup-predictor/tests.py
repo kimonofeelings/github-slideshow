@@ -167,6 +167,30 @@ def test_paper():
             paper.STATE_PATH = orig
 
 
+def test_chunking():
+    from soccer_sim.notify import chunk_message
+    short = "hello\n\nworld"
+    check("short message unchunked", chunk_message(short) == [short])
+    blocks = "\n\n".join("block %d " % i + "x" * 300 for i in range(8))
+    parts = chunk_message(blocks)
+    check("long message splits", len(parts) >= 2)
+    check("every part under cap", all(len(p) <= 1500 for p in parts))
+    check("parts numbered", parts[0].startswith("(1/"))
+    joined = "".join(p.split("\n", 1)[1] for p in parts)
+    check("no content lost", all(("block %d" % i) in joined
+                                 for i in range(8)))
+
+
+def test_inbox_commands():
+    from soccer_sim import inbox, paper
+    check("menu answered", "ODDS" in inbox._answer("menu"))
+    check("bets answered", "$" in inbox._answer("bets"))
+    check("record answered", "record" in inbox._answer("record").lower()
+          or "Model" in inbox._answer("record"))
+    check("noise ignored", inbox._answer("\U0001F44D") is None)
+    check("empty ignored", inbox._answer("") is None)
+
+
 def test_inplay():
     from soccer_sim.data.worldcup2026 import get_team
     from soccer_sim.inplay import simulate_inplay, minutes_left_from_kickoff
@@ -209,7 +233,8 @@ def test_simulation_sanity():
 
 if __name__ == "__main__":
     for fn in (test_dixon_coles, test_learning, test_context_bounds,
-               test_team_scores, test_messages, test_paper, test_inplay,
+               test_team_scores, test_messages, test_paper, test_chunking,
+               test_inbox_commands, test_inplay,
                test_simulation_sanity):
         print(fn.__name__)
         fn()

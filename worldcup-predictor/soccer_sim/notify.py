@@ -173,7 +173,8 @@ def whatsapp_summary(results, extra=None):
         lines.append("")
     lines.append(f"_{results[0].n_sims:,} simulations per match, live venue "
                  f"& weather data_")
-    lines.append("_Reply anything to keep daily delivery active_")
+    lines.append("_Reply MENU for commands (ODDS, BETS, LIVE...) - any "
+                 "reply keeps daily delivery active_")
     return "\n".join(lines)
 
 
@@ -250,15 +251,43 @@ def build_message(results, extra=None, include_other=True):
                 candidate = head + "\n" + "\n".join(section) + "\n\n_" + tail
                 if len(candidate) < 1500:      # Twilio hard cap is 1600
                     msg = candidate
-        if len(msg) >= 1550:
-            # trim the footer lines first, then key-battle lines
-            msg = msg.replace("\n_1,000,000 simulations per match, live "
-                              "venue & weather data_", "")
-            if len(msg) >= 1550:
-                msg = "\n".join(l for l in msg.split("\n")
-                                if not l.startswith("\U0001F511"))
         return msg
     return sms_summary(results, extra)
+
+
+TWILIO_CAP = 1500      # stay safely under Twilio's 1600-char body limit
+
+
+def chunk_message(msg, limit=TWILIO_CAP):
+    """Split a long message into numbered parts on blank-line boundaries
+    so each part fits Twilio's cap and no match card is cut in half."""
+    if len(msg) <= limit:
+        return [msg]
+    blocks = msg.split("\n\n")
+    parts, cur = [], ""
+    for b in blocks:
+        cand = (cur + "\n\n" + b) if cur else b
+        if len(cand) > limit - 12 and cur:      # reserve room for (n/m)
+            parts.append(cur)
+            cur = b
+        else:
+            cur = cand
+    if cur:
+        parts.append(cur)
+    n = len(parts)
+    return [f"({i + 1}/{n})\n{p}" if n > 1 else p
+            for i, p in enumerate(parts)]
+
+
+def send_long(phone, msg):
+    """Send a message of any length, chunking as needed.
+    Returns (ok, provider, detail) of the last part."""
+    result = (False, None, "nothing to send")
+    for part in chunk_message(msg):
+        result = send_sms(phone, part)
+        if not result[0]:
+            break
+    return result
 
 
 # --------------------------------------------------------------------------
