@@ -191,6 +191,22 @@ def test_inbox_commands():
     check("empty ignored", inbox._answer("") is None)
 
 
+def test_tournament():
+    from soccer_sim.tournament import title_odds, advance_prob
+    from soccer_sim.data.worldcup2026 import get_team
+    odds = title_odds()
+    check("title odds sum to 1", abs(sum(odds.values()) - 1.0) < 1e-9)
+    check("all 12 alive teams present", len(odds) == 12)
+    check("eliminated teams absent",
+          "BRA" not in odds and "MEX" not in odds)
+    check("favorites are plausible",
+          list(odds)[0] in ("FRA", "ENG", "ARG", "ESP"))
+    p = advance_prob(get_team("FRA"), get_team("EGY"))
+    check("FRA heavy favorite over EGY", p > 0.7)
+    q = advance_prob(get_team("EGY"), get_team("FRA"))
+    check("advance probs complementary-ish", abs(p + q - 1.0) < 0.06)
+
+
 def test_inplay():
     from soccer_sim.data.worldcup2026 import get_team
     from soccer_sim.inplay import simulate_inplay, minutes_left_from_kickoff
@@ -234,7 +250,7 @@ def test_simulation_sanity():
 if __name__ == "__main__":
     for fn in (test_dixon_coles, test_learning, test_context_bounds,
                test_team_scores, test_messages, test_paper, test_chunking,
-               test_inbox_commands, test_inplay,
+               test_inbox_commands, test_tournament, test_inplay,
                test_simulation_sanity):
         print(fn.__name__)
         fn()

@@ -232,7 +232,9 @@ def other_matches_section(modeled_names):
             pass
         fh = COUNTRY_FLAGS.get(h.lower(), "")
         fa = COUNTRY_FLAGS.get(a.lower(), "")
-        if ph and pa and (ph + pa) > 0.1:
+        # reach-QF prices only price a head-to-head R16 tie; for later
+        # rounds both sides are ~1.0 and the ratio is meaningless
+        if ph and pa and 0.1 < (ph + pa) < 1.6:
             p = ph / (ph + pa)
             lead, pl = (h, p) if p >= 0.5 else (a, 1 - p)
             lines.append(f"{when}{fh} {h} vs {a} {fa} — *{lead} {pl:.0%}*")

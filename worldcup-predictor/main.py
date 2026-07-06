@@ -206,6 +206,15 @@ def main():
             bets = [n for n in paper_notes if not n.startswith("paper ")]
             extra = learn_notes + bets + [learn.record_line(),
                                           paper.summary_line()]
+            try:
+                from soccer_sim.tournament import title_odds
+                from soccer_sim.notify import FLAGS
+                top = list(title_odds().items())[:4]
+                extra.append("\U0001F3C6 Title odds: " + "  ".join(
+                    f"{FLAGS.get(c, '')}{c} {p:.0%}" for c, p in top)
+                    + "  (text CUP for all)")
+            except Exception:
+                pass
         message = build_message(results, extra)
         if args.text_preview:
             print("SMS PREVIEW" + f" ({len(message)} chars)\n" + "-" * 40)

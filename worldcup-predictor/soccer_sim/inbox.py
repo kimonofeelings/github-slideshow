@@ -29,6 +29,7 @@ from .live.http import CACHE_DIR
 STATE = os.path.join(CACHE_DIR, "inbox_state.json")
 HELP = ("\U0001F4F1 *TEXT ME:*\n"
         "ODDS - today's predictions\n"
+        "CUP - World Cup title odds\n"
         "BETS - open bets + bankroll\n"
         "RECORD - model accuracy\n"
         "LIVE - live match odds now\n"
@@ -130,6 +131,10 @@ def _answer(cmd, n_sims=100_000):
         if not results:
             return "No upcoming fixtures in the model right now."
         return build_message(results, include_other=False)
+
+    if cmd in ("cup", "winner", "title", "champ", "champion"):
+        from .tournament import title_message
+        return title_message()
 
     if cmd in ("live", "score", "scores"):
         from .inplay import run_live_update
