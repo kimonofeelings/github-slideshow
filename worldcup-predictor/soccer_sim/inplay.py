@@ -166,14 +166,6 @@ def _run_live_update(home_code, away_code, n_sims, force):
     from .notify import send_sms
     from . import learn
 
-    # piggyback: answer any pending text commands on every live poll,
-    # so replies are fast while a match is on
-    try:
-        from . import inbox
-        inbox.process()
-    except Exception:
-        pass
-
     a, b = get_team(home_code), get_team(away_code)
     state = espn.fetch_live_state(a.name, b.name)
     if state is None:
