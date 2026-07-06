@@ -34,7 +34,10 @@
    "lam_home": 1.021,
    "lam_away": 1.493,
    "recorded": "2026-07-05T22:37+00:00",
-   "settled": false
+   "settled": true,
+   "result": "2-3",
+   "called": true,
+   "brier": 0.1033
   }
  ],
  "team_adj": {
@@ -45,12 +48,20 @@
   "NOR": {
    "attack": 1.0564,
    "leak": 0.9758
+  },
+  "MEX": {
+   "attack": 1.0575,
+   "leak": 1.06
+  },
+  "ENG": {
+   "attack": 1.06,
+   "leak": 1.0575
   }
  },
  "record": {
-  "matches": 1,
-  "winners_called": 0,
-  "brier_sum": 0.4823
+  "matches": 2,
+  "winners_called": 1,
+  "brier_sum": 0.5856
  },
  "history": [
   {
@@ -61,6 +72,16 @@
    "learned": [
     "BRA attack -2% (scored 1 vs 1.7 expected); NOR defense tighter",
     "NOR attack +6% (scored 2 vs 1.0 expected); BRA defense leakier"
+   ]
+  },
+  {
+   "match": "MEX 2-3 ENG",
+   "predicted_home": 0.3214,
+   "called": true,
+   "brier": 0.1033,
+   "learned": [
+    "MEX attack +6% (scored 2 vs 1.0 expected); ENG defense leakier",
+    "ENG attack +6% (scored 3 vs 1.5 expected); MEX defense leakier"
    ]
   }
  ]
