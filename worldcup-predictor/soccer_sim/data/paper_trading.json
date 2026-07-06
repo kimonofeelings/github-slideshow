@@ -1,5 +1,5 @@
 {
- "bankroll": 1007.61,
+ "bankroll": 925.77,
  "start": 1000.0,
  "open": [
   {
@@ -10,6 +10,24 @@
    "edge": 0.137,
    "stake": 39.47,
    "placed": "2026-07-05 22:31Z"
+  },
+  {
+   "match": "POR-ESP",
+   "team": "POR",
+   "price": 0.335,
+   "model_p": 0.462,
+   "edge": 0.127,
+   "stake": 48.2,
+   "placed": "2026-07-06 15:12Z"
+  },
+  {
+   "match": "USA-BEL",
+   "team": "BEL",
+   "price": 0.465,
+   "model_p": 0.54,
+   "edge": 0.075,
+   "stake": 33.64,
+   "placed": "2026-07-06 15:12Z"
   }
  ],
  "settled": [

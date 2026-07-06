@@ -247,7 +247,16 @@ def build_message(results, extra=None, include_other=True):
             section = other_matches_section(modeled)
             if section:
                 head, _, tail = msg.partition("\n_")
-                msg = head + "\n" + "\n".join(section) + "\n\n_" + tail
+                candidate = head + "\n" + "\n".join(section) + "\n\n_" + tail
+                if len(candidate) < 1500:      # Twilio hard cap is 1600
+                    msg = candidate
+        if len(msg) >= 1550:
+            # trim the footer lines first, then key-battle lines
+            msg = msg.replace("\n_1,000,000 simulations per match, live "
+                              "venue & weather data_", "")
+            if len(msg) >= 1550:
+                msg = "\n".join(l for l in msg.split("\n")
+                                if not l.startswith("\U0001F511"))
         return msg
     return sms_summary(results, extra)
 
