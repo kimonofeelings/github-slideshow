@@ -149,8 +149,16 @@ def run_live_update(home_code, away_code, n_sims=1_000_000, force=False):
     """One poll: fetch real state (ESPN first - live scores + true match
     clock; TheSportsDB fallback), simulate from it, and send only when
     there is news: a goal, a first update, or a heartbeat interval.
-    Returns: 'goal-sent', 'live-sent', 'ft-sent', 'no-change',
-    'not-started', 'already-graded', 'no-data', or an error string."""
+    Cross-process locked: the daemon and agent-driven polls can overlap
+    without duplicate alerts. Returns: 'goal-sent', 'live-sent',
+    'ft-sent', 'no-change', 'not-started', 'already-graded', 'no-data',
+    or an error string."""
+    from .live.http import flock
+    with flock("inplay"):
+        return _run_live_update(home_code, away_code, n_sims, force)
+
+
+def _run_live_update(home_code, away_code, n_sims, force):
     import time
     from .data.worldcup2026 import get_team, get_context
     from .live import espn

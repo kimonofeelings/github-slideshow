@@ -66,8 +66,10 @@ def _save_state(st):
 
 
 def fetch_new_inbound(phone):
-    """Inbound WhatsApp messages from the user we haven't handled yet,
-    oldest first. First call fast-forwards history without replying."""
+    """Inbound WhatsApp messages we haven't handled yet, oldest first.
+    Every processed message SID is remembered, so a message can never
+    be answered twice regardless of ordering or concurrent runs. The
+    very first call fast-forwards past history without replying."""
     frm = urllib.parse.quote(f"whatsapp:{phone}")
     data = _twilio_get(f"Messages.json?From={frm}&PageSize=20")
     if not data:
@@ -76,21 +78,24 @@ def fetch_new_inbound(phone):
             if m.get("direction") == "inbound"]
     msgs.reverse()
     st = _load_state()
-    if "last_sid" not in st:                # first ever run: skip history
-        if msgs:
-            st["last_sid"] = msgs[-1]["sid"]
-            _save_state(st)
+    if "done_sids" not in st and "last_sid" not in st:
+        st["done_sids"] = [m["sid"] for m in msgs]
+        _save_state(st)
         return []
-    seen = st["last_sid"]
-    out, past = [], False
-    for m in msgs:
-        if past:
-            out.append(m)
-        if m["sid"] == seen:
-            past = True
-    if not past:                            # last-seen rotated out of page
-        out = msgs[-3:]
-    return out
+    done = set(st.get("done_sids", []))
+    if st.get("last_sid"):                  # migrate old single-sid state
+        done.add(st["last_sid"])
+    return [m for m in msgs if m["sid"] not in done]
+
+
+def mark_done(sid):
+    st = _load_state()
+    done = st.get("done_sids", [])
+    if st.get("last_sid") and st["last_sid"] not in done:
+        done.append(st.pop("last_sid"))
+    done.append(sid)
+    st["done_sids"] = done[-300:]
+    _save_state(st)
 
 
 def _answer(cmd, n_sims=100_000):
@@ -159,24 +164,27 @@ def process(n_sims=100_000):
     if not phone:
         return ["inbox: no phone configured"]
 
+    import re
+    from .live.http import flock
+
     actions = []
-    msgs = fetch_new_inbound(phone)
-    st = _load_state()
-    for m in msgs:
-        st["last_sid"] = m["sid"]
-        _save_state(st)
-        body = (m.get("body") or "").strip().lower()
-        cmd = body.split()[0] if body.split() else ""
-        try:
-            reply = _answer(cmd, n_sims=n_sims)
-        except Exception as e:
-            reply = None
-            actions.append(f"inbox: '{cmd}' failed ({e})")
-        if reply:
-            from .notify import send_long
-            ok, _, detail = send_long(phone, reply)
-            actions.append(f"inbox: answered '{cmd}'"
-                           + ("" if ok else f" SEND FAILED: {detail}"))
-        elif cmd:
-            actions.append(f"inbox: ignored '{cmd[:20]}'")
+    with flock("inbox"):
+        msgs = fetch_new_inbound(phone)
+        for m in msgs:
+            mark_done(m["sid"])
+            body = (m.get("body") or "").strip().lower()
+            first = body.split()[0] if body.split() else ""
+            cmd = re.sub(r"[^a-z]", "", first)   # 'Cup?' / ' ODDS!' -> cmd
+            try:
+                reply = _answer(cmd, n_sims=n_sims)
+            except Exception as e:
+                reply = None
+                actions.append(f"inbox: '{cmd}' failed ({e})")
+            if reply:
+                from .notify import send_long
+                ok, _, detail = send_long(phone, reply)
+                actions.append(f"inbox: answered '{cmd}'"
+                               + ("" if ok else f" SEND FAILED: {detail}"))
+            elif body:
+                actions.append(f"inbox: ignored '{body[:20]}'")
     return actions

@@ -20,6 +20,24 @@ CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(
 USER_AGENT = "worldcup-predictor/1.0 (class project)"
 
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def flock(name):
+    """Cross-process file lock so the daemon and any agent-driven run
+    never process the same inbox message or send duplicate alerts."""
+    import fcntl
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    f = open(os.path.join(CACHE_DIR, name + ".lock"), "w")
+    fcntl.flock(f, fcntl.LOCK_EX)
+    try:
+        yield
+    finally:
+        fcntl.flock(f, fcntl.LOCK_UN)
+        f.close()
+
+
 def get_json(url, ttl=900, headers=None, timeout=15):
     """GET a JSON document, serving from cache when younger than ttl (s).
     Returns the parsed object, or None on any network/parse failure —
