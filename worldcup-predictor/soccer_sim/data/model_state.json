@@ -62,7 +62,10 @@
    "lam_home": 1.132,
    "lam_away": 1.172,
    "recorded": "2026-07-06T15:12+00:00",
-   "settled": false
+   "settled": true,
+   "result": "1-4",
+   "called": true,
+   "brier": 0.2116
   },
   {
    "home": "SUI",
@@ -111,12 +114,20 @@
   "ESP": {
    "attack": 0.9884,
    "leak": 0.94
+  },
+  "BEL": {
+   "attack": 1.06,
+   "leak": 1.0
+  },
+  "USA": {
+   "attack": 1.0,
+   "leak": 1.06
   }
  },
  "record": {
-  "matches": 3,
-  "winners_called": 2,
-  "brier_sum": 0.7992
+  "matches": 4,
+  "winners_called": 3,
+  "brier_sum": 1.0108000000000001
  },
  "history": [
   {
@@ -147,6 +158,15 @@
    "learned": [
     "POR attack -6% (scored 0 vs 1.1 expected); ESP defense tighter",
     "ESP attack -1% (scored 1 vs 1.2 expected); POR defense tighter"
+   ]
+  },
+  {
+   "match": "USA 1-4 BEL",
+   "predicted_home": 0.46,
+   "called": true,
+   "brier": 0.2116,
+   "learned": [
+    "BEL attack +6% (scored 4 vs 1.2 expected); USA defense leakier"
    ]
   }
  ]
