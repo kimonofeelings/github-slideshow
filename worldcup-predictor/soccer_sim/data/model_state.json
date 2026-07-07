@@ -8,7 +8,7 @@
    "p_home_advance": 0.7284,
    "lam_home": 1.688,
    "lam_away": 0.967,
-   "recorded": "2026-07-06T15:12+00:00",
+   "recorded": "2026-07-07T15:03+00:00",
    "settled": false
   },
   {
@@ -75,7 +75,7 @@
    "p_home_advance": 0.4415,
    "lam_home": 1.01,
    "lam_away": 1.144,
-   "recorded": "2026-07-06T15:12+00:00",
+   "recorded": "2026-07-07T15:03+00:00",
    "settled": false
   },
   {
@@ -83,10 +83,10 @@
    "away": "MAR",
    "home_name": "France",
    "away_name": "Morocco",
-   "p_home_advance": 0.686,
-   "lam_home": 1.39,
-   "lam_away": 0.929,
-   "recorded": "2026-07-06T15:12+00:00",
+   "p_home_advance": 0.6859,
+   "lam_home": 1.389,
+   "lam_away": 0.928,
+   "recorded": "2026-07-07T15:03+00:00",
    "settled": false
   }
  ],
