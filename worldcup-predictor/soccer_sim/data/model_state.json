@@ -9,7 +9,10 @@
    "lam_home": 1.688,
    "lam_away": 0.967,
    "recorded": "2026-07-07T15:03+00:00",
-   "settled": false
+   "settled": true,
+   "result": "3-2",
+   "called": true,
+   "brier": 0.0738
   },
   {
    "home": "BRA",
@@ -122,12 +125,20 @@
   "USA": {
    "attack": 1.0,
    "leak": 1.06
+  },
+  "ARG": {
+   "attack": 1.0466,
+   "leak": 1.06
+  },
+  "EGY": {
+   "attack": 1.06,
+   "leak": 1.0466
   }
  },
  "record": {
-  "matches": 4,
-  "winners_called": 3,
-  "brier_sum": 1.0108000000000001
+  "matches": 5,
+  "winners_called": 4,
+  "brier_sum": 1.0846000000000002
  },
  "history": [
   {
@@ -167,6 +178,16 @@
    "brier": 0.2116,
    "learned": [
     "BEL attack +6% (scored 4 vs 1.2 expected); USA defense leakier"
+   ]
+  },
+  {
+   "match": "ARG 3-2 EGY",
+   "predicted_home": 0.7284,
+   "called": true,
+   "brier": 0.0738,
+   "learned": [
+    "ARG attack +5% (scored 3 vs 1.7 expected); EGY defense leakier",
+    "EGY attack +6% (scored 2 vs 1.0 expected); ARG defense leakier"
    ]
   }
  ]
