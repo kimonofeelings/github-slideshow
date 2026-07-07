@@ -48,7 +48,10 @@
    "lam_home": 1.128,
    "lam_away": 1.239,
    "recorded": "2026-07-06T15:12+00:00",
-   "settled": false
+   "settled": true,
+   "result": "0-1",
+   "called": true,
+   "brier": 0.2136
   },
   {
    "home": "USA",
@@ -100,12 +103,20 @@
   "ENG": {
    "attack": 1.06,
    "leak": 1.0575
+  },
+  "POR": {
+   "attack": 0.94,
+   "leak": 0.9884
+  },
+  "ESP": {
+   "attack": 0.9884,
+   "leak": 0.94
   }
  },
  "record": {
-  "matches": 2,
-  "winners_called": 1,
-  "brier_sum": 0.5856
+  "matches": 3,
+  "winners_called": 2,
+  "brier_sum": 0.7992
  },
  "history": [
   {
@@ -126,6 +137,16 @@
    "learned": [
     "MEX attack +6% (scored 2 vs 1.0 expected); ENG defense leakier",
     "ENG attack +6% (scored 3 vs 1.5 expected); MEX defense leakier"
+   ]
+  },
+  {
+   "match": "POR 0-1 ESP",
+   "predicted_home": 0.4622,
+   "called": true,
+   "brier": 0.2136,
+   "learned": [
+    "POR attack -6% (scored 0 vs 1.1 expected); ESP defense tighter",
+    "ESP attack -1% (scored 1 vs 1.2 expected); POR defense tighter"
    ]
   }
  ]
