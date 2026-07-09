@@ -191,6 +191,7 @@ def _run_live_update(home_code, away_code, n_sims, force):
             advanced = (a.code if score[0] > score[1]
                         else b.code if score[1] > score[0] else None)
         if advanced:
+            learn.mark_advanced(a.code, b.code, advanced)
             notes += paper.settle(a.code, b.code, advanced)
         msg = build_ft_message(a, b, state, notes, learn.record_line()
                                + "\n\U0001F4B0 " + paper.summary_line())

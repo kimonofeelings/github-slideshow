@@ -98,11 +98,15 @@ def title_odds():
 
     settled = {}
     for p in learn.load_state()["predictions"]:
-        if p.get("settled") and p.get("result"):
+        if not p.get("settled"):
+            continue
+        key = frozenset((p["home"], p["away"]))
+        if p.get("advanced"):                 # covers penalty shootouts
+            settled[key] = p["advanced"]
+        elif p.get("result"):
             gh, ga = map(int, p["result"].split("-"))
             if gh != ga:
-                settled[frozenset((p["home"], p["away"]))] = (
-                    p["home"] if gh > ga else p["away"])
+                settled[key] = p["home"] if gh > ga else p["away"]
 
     pair_cache = {}
     dist = _resolve("final", TEAMS, pair_cache, settled)

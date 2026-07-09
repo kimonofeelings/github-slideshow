@@ -1,7 +1,26 @@
 {
- "bankroll": 998.11,
+ "bankroll": 921.4,
  "start": 1000.0,
- "open": [],
+ "open": [
+  {
+   "match": "FRA-MAR",
+   "team": "MAR",
+   "price": 0.2265,
+   "model_p": 0.314,
+   "edge": 0.087,
+   "stake": 28.21,
+   "placed": "2026-07-09 18:39Z"
+  },
+  {
+   "match": "ESP-BEL",
+   "team": "BEL",
+   "price": 0.2555,
+   "model_p": 0.428,
+   "edge": 0.173,
+   "stake": 48.5,
+   "placed": "2026-07-09 18:39Z"
+  }
+ ],
  "settled": [
   {
    "match": "MEX-ENG",

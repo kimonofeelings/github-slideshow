@@ -171,6 +171,17 @@ def update_from_results(hints=None):
     return notes
 
 
+def mark_advanced(home_code, away_code, advanced_code):
+    """Record WHO advanced for ties decided on penalties, where the
+    scoreline alone can't say. Consumed by the tournament projector."""
+    state = load_state()
+    for p in state["predictions"]:
+        if p["home"] == home_code and p["away"] == away_code:
+            p["advanced"] = advanced_code
+            save_state(state)
+            return
+
+
 def record_line():
     """One-line running accuracy summary for reports and texts."""
     r = load_state()["record"]

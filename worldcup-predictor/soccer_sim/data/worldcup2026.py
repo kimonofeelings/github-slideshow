@@ -371,11 +371,36 @@ CONTEXTS = {
         home_support=0.45, ref_strictness=0.50,
         rest_days=(5, 4), travel_km=(900, 1_300),
     ),
+    # --- QUARTERFINALS -------------------------------------------------
+    # Spain-Belgium under the SoFi canopy in LA.
+    ("ESP", "BEL"): MatchContext(
+        venue="SoFi Stadium", city="Inglewood", kickoff_local="12:00",
+        roof_closed=True, crowd=70_000, home_support=0.55,
+        ref_strictness=0.50,
+        rest_days=(4, 3), travel_km=(2_200, 1_500),
+    ),
+    # Norway-England in Miami heat - Haaland vs Kane, round two of the
+    # bracket's biggest slugfest, in the humidity neither is built for.
+    ("NOR", "ENG"): MatchContext(
+        venue="Hard Rock Stadium", city="Miami Gardens", kickoff_local="17:00",
+        temp_c=31.0, humidity=0.72, wind_kmh=11, crowd=66_000,
+        home_support=0.42, ref_strictness=0.50,
+        rest_days=(6, 5), travel_km=(1_800, 1_900),
+    ),
+    # Argentina-Switzerland at Arrowhead - one of the loudest venues in
+    # the tournament, heavily Albiceleste.
+    ("ARG", "SUI"): MatchContext(
+        venue="GEHA Field at Arrowhead Stadium", city="Kansas City",
+        kickoff_local="20:00", temp_c=27.0, humidity=0.60, wind_kmh=12,
+        crowd=73_000, home_support=0.70, ref_strictness=0.50,
+        rest_days=(4, 4), travel_km=(1_100, 2_900),
+    ),
 }
 
-# Real Round of 16 fixtures covered by this demo data
+# Real fixtures covered by this data: R16 (played) + quarterfinals
 FIXTURES = [("ARG", "EGY"), ("BRA", "NOR"), ("MEX", "ENG"),
-            ("POR", "ESP"), ("USA", "BEL"), ("SUI", "COL"), ("FRA", "MAR")]
+            ("POR", "ESP"), ("USA", "BEL"), ("SUI", "COL"), ("FRA", "MAR"),
+            ("ESP", "BEL"), ("NOR", "ENG"), ("ARG", "SUI")]
 
 
 def get_team(code):

@@ -79,17 +79,54 @@
    "lam_home": 1.01,
    "lam_away": 1.144,
    "recorded": "2026-07-07T15:03+00:00",
-   "settled": false
+   "settled": true,
+   "result": "0-0",
+   "called": null,
+   "brier": null,
+   "advanced": "SUI"
   },
   {
    "home": "FRA",
    "away": "MAR",
    "home_name": "France",
    "away_name": "Morocco",
-   "p_home_advance": 0.6859,
-   "lam_home": 1.389,
-   "lam_away": 0.928,
-   "recorded": "2026-07-07T15:03+00:00",
+   "p_home_advance": 0.6861,
+   "lam_home": 1.381,
+   "lam_away": 0.923,
+   "recorded": "2026-07-09T18:39+00:00",
+   "settled": false
+  },
+  {
+   "home": "ESP",
+   "away": "BEL",
+   "home_name": "Spain",
+   "away_name": "Belgium",
+   "p_home_advance": 0.5719,
+   "lam_home": 1.269,
+   "lam_away": 1.036,
+   "recorded": "2026-07-09T18:39+00:00",
+   "settled": false
+  },
+  {
+   "home": "NOR",
+   "away": "ENG",
+   "home_name": "Norway",
+   "away_name": "England",
+   "p_home_advance": 0.3426,
+   "lam_home": 1.175,
+   "lam_away": 1.677,
+   "recorded": "2026-07-09T18:39+00:00",
+   "settled": false
+  },
+  {
+   "home": "ARG",
+   "away": "SUI",
+   "home_name": "Argentina",
+   "away_name": "Switzerland",
+   "p_home_advance": 0.7356,
+   "lam_home": 1.447,
+   "lam_away": 0.82,
+   "recorded": "2026-07-09T18:39+00:00",
    "settled": false
   }
  ],
@@ -133,6 +170,14 @@
   "EGY": {
    "attack": 1.06,
    "leak": 1.0466
+  },
+  "SUI": {
+   "attack": 0.94,
+   "leak": 0.94
+  },
+  "COL": {
+   "attack": 0.94,
+   "leak": 0.94
   }
  },
  "record": {
@@ -188,6 +233,16 @@
    "learned": [
     "ARG attack +5% (scored 3 vs 1.7 expected); EGY defense leakier",
     "EGY attack +6% (scored 2 vs 1.0 expected); ARG defense leakier"
+   ]
+  },
+  {
+   "match": "SUI 0-0 COL",
+   "predicted_home": 0.4415,
+   "called": null,
+   "brier": null,
+   "learned": [
+    "SUI attack -6% (scored 0 vs 1.0 expected); COL defense tighter",
+    "COL attack -6% (scored 0 vs 1.1 expected); SUI defense tighter"
    ]
   }
  ]

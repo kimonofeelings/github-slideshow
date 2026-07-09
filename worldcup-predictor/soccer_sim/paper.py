@@ -50,27 +50,47 @@ def _save(state):
         json.dump(state, f, indent=1)
 
 
-def fetch_advance_prices():
-    """{team_name_lower: yes_price} from Polymarket's quarterfinal
-    markets, or {} when the API is unreachable."""
+ROUNDS = ("Final", "Semifinals", "Quarterfinals")
+
+
+def fetch_advance_prices(round_name=None):
+    """{team_name_lower: yes_price} from Polymarket's 'Nation To Reach X'
+    markets. When `round_name` is None, each team gets its price from the
+    EARLIEST round it hasn't clinched yet - which is exactly the market
+    that settles on the team's next match. {} when unreachable."""
     data = get_json(GAMMA, ttl=600)
-    prices = {}
+    by_round = {r: {} for r in ROUNDS}
     for e in data or []:
-        if "Quarterfinal" not in (e.get("title") or ""):
+        title = e.get("title") or ""
+        rnd = next((r for r in ROUNDS if r in title), None)
+        if rnd is None or "Reach" not in title.replace("reach", "Reach"):
             continue
         for m in e.get("markets", []):
             q = m.get("question") or ""
-            if not q.startswith("Will ") or "reach the Quarterfinals" not in q:
+            if not q.startswith("Will ") or " reach " not in q.lower():
                 continue
-            team = q[5:q.index(" reach")].strip().lower()
+            team = q[5:q.lower().index(" reach ")].strip().lower()
             try:
                 outcomes = json.loads(m.get("outcomes") or "[]")
                 px = json.loads(m.get("outcomePrices") or "[]")
                 yes = float(px[outcomes.index("Yes")])
             except (ValueError, IndexError):
                 continue
-            prices[team] = yes
-    return prices
+            by_round[rnd][team] = yes
+    if round_name:
+        return by_round.get(round_name, {})
+    # walk from latest round to earliest: keep the price from the first
+    # round (in tournament order) the team hasn't already clinched
+    merged = {}
+    for rnd in ROUNDS:                      # Final -> SF -> QF
+        for team, yes in by_round[rnd].items():
+            if PRICE_BOUNDS[0] < yes < PRICE_BOUNDS[1]:
+                merged[team] = yes          # later rounds overwritten below
+    for rnd in ("Semifinals", "Quarterfinals"):
+        for team, yes in by_round[rnd].items():
+            if PRICE_BOUNDS[0] < yes < PRICE_BOUNDS[1]:
+                merged[team] = yes
+    return merged
 
 
 def _kelly_stake(bankroll, p_win, price):
