@@ -94,7 +94,11 @@
    "lam_home": 1.381,
    "lam_away": 0.923,
    "recorded": "2026-07-09T18:39+00:00",
-   "settled": false
+   "settled": true,
+   "result": "2-0",
+   "called": true,
+   "brier": 0.0985,
+   "advanced": "FRA"
   },
   {
    "home": "ESP",
@@ -178,12 +182,20 @@
   "COL": {
    "attack": 0.94,
    "leak": 0.94
+  },
+  "FRA": {
+   "attack": 1.0269,
+   "leak": 0.94
+  },
+  "MAR": {
+   "attack": 0.94,
+   "leak": 1.0269
   }
  },
  "record": {
-  "matches": 5,
-  "winners_called": 4,
-  "brier_sum": 1.0846000000000002
+  "matches": 6,
+  "winners_called": 5,
+  "brier_sum": 1.1831000000000003
  },
  "history": [
   {
@@ -243,6 +255,16 @@
    "learned": [
     "SUI attack -6% (scored 0 vs 1.0 expected); COL defense tighter",
     "COL attack -6% (scored 0 vs 1.1 expected); SUI defense tighter"
+   ]
+  },
+  {
+   "match": "FRA 2-0 MAR",
+   "predicted_home": 0.6861,
+   "called": true,
+   "brier": 0.0985,
+   "learned": [
+    "FRA attack +3% (scored 2 vs 1.4 expected); MAR defense leakier",
+    "MAR attack -6% (scored 0 vs 0.9 expected); FRA defense tighter"
    ]
   }
  ]
