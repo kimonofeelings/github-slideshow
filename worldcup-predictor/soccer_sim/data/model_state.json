@@ -109,7 +109,11 @@
    "lam_home": 1.269,
    "lam_away": 1.036,
    "recorded": "2026-07-10T15:04+00:00",
-   "settled": false
+   "settled": true,
+   "result": "2-1",
+   "called": true,
+   "brier": 0.1833,
+   "advanced": "ESP"
   },
   {
    "home": "NOR",
@@ -156,12 +160,12 @@
    "leak": 0.9884
   },
   "ESP": {
-   "attack": 0.9884,
+   "attack": 1.0226,
    "leak": 0.94
   },
   "BEL": {
    "attack": 1.06,
-   "leak": 1.0
+   "leak": 1.0346
   },
   "USA": {
    "attack": 1.0,
@@ -193,9 +197,9 @@
   }
  },
  "record": {
-  "matches": 6,
-  "winners_called": 5,
-  "brier_sum": 1.1831000000000003
+  "matches": 7,
+  "winners_called": 6,
+  "brier_sum": 1.3664000000000003
  },
  "history": [
   {
@@ -265,6 +269,15 @@
    "learned": [
     "FRA attack +3% (scored 2 vs 1.4 expected); MAR defense leakier",
     "MAR attack -6% (scored 0 vs 0.9 expected); FRA defense tighter"
+   ]
+  },
+  {
+   "match": "ESP 2-1 BEL",
+   "predicted_home": 0.5719,
+   "called": true,
+   "brier": 0.1833,
+   "learned": [
+    "ESP attack +3% (scored 2 vs 1.3 expected); BEL defense leakier"
    ]
   }
  ]
