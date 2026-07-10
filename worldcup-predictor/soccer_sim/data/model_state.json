@@ -108,7 +108,7 @@
    "p_home_advance": 0.5719,
    "lam_home": 1.269,
    "lam_away": 1.036,
-   "recorded": "2026-07-09T18:39+00:00",
+   "recorded": "2026-07-10T15:04+00:00",
    "settled": false
   },
   {
@@ -116,10 +116,10 @@
    "away": "ENG",
    "home_name": "Norway",
    "away_name": "England",
-   "p_home_advance": 0.3426,
-   "lam_home": 1.175,
-   "lam_away": 1.677,
-   "recorded": "2026-07-09T18:39+00:00",
+   "p_home_advance": 0.3421,
+   "lam_home": 1.19,
+   "lam_away": 1.698,
+   "recorded": "2026-07-10T15:04+00:00",
    "settled": false
   },
   {
@@ -127,10 +127,10 @@
    "away": "SUI",
    "home_name": "Argentina",
    "away_name": "Switzerland",
-   "p_home_advance": 0.7356,
-   "lam_home": 1.447,
-   "lam_away": 0.82,
-   "recorded": "2026-07-09T18:39+00:00",
+   "p_home_advance": 0.7355,
+   "lam_home": 1.42,
+   "lam_away": 0.805,
+   "recorded": "2026-07-10T15:04+00:00",
    "settled": false
   }
  ],
