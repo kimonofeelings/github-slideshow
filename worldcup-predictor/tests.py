@@ -167,6 +167,38 @@ def test_paper():
             paper.STATE_PATH = orig
 
 
+def test_title_paper():
+    from soccer_sim import paper
+    orig = paper.STATE_PATH
+    with tempfile.TemporaryDirectory() as tmp:
+        paper.STATE_PATH = os.path.join(tmp, "paper.json")
+        try:
+            fake_prices = {"france": 0.20, "england": 0.25}
+            fake_odds = {"FRA": 0.40, "ENG": 0.22, "ESP": 0.20, "ARG": 0.18}
+            with mock.patch("soccer_sim.paper.fetch_title_prices",
+                            return_value=fake_prices), \
+                 mock.patch("soccer_sim.tournament.title_odds",
+                            return_value=fake_odds):
+                notes, placed = paper.consider_title_bets()
+            check("title bet placed on biggest edge",
+                  len(placed) == 1 and placed[0]["team"] == "FRA")
+            check("title bet marked TITLE", placed[0]["match"] == "TITLE")
+            check("title slip says win the cup",
+                  "WIN THE CUP" in paper.build_bet_slip(placed))
+            with mock.patch("soccer_sim.paper.fetch_title_prices",
+                            return_value=fake_prices), \
+                 mock.patch("soccer_sim.tournament.title_odds",
+                            return_value=fake_odds):
+                _, again = paper.consider_title_bets()
+            check("only one open title bet", again == []
+                  and len(paper._load()["open"]) == 1)
+            lose = paper.settle_title("ENG")
+            check("title bet settles", "LOST" in lose[0])
+            check("re-settle title is no-op", paper.settle_title("ENG") == [])
+        finally:
+            paper.STATE_PATH = orig
+
+
 def test_chunking():
     from soccer_sim.notify import chunk_message
     short = "hello\n\nworld"
@@ -249,7 +281,8 @@ def test_simulation_sanity():
 
 if __name__ == "__main__":
     for fn in (test_dixon_coles, test_learning, test_context_bounds,
-               test_team_scores, test_messages, test_paper, test_chunking,
+               test_team_scores, test_messages, test_paper,
+               test_title_paper, test_chunking,
                test_inbox_commands, test_tournament, test_inplay,
                test_simulation_sanity):
         print(fn.__name__)

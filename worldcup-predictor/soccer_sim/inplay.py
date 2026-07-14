@@ -193,6 +193,13 @@ def _run_live_update(home_code, away_code, n_sims, force):
         if advanced:
             learn.mark_advanced(a.code, b.code, advanced)
             notes += paper.settle(a.code, b.code, advanced)
+            try:
+                from .tournament import title_odds
+                odds = title_odds()
+                if len(odds) == 1:          # final graded: champion known
+                    notes += paper.settle_title(next(iter(odds)))
+            except Exception:
+                pass
         msg = build_ft_message(a, b, state, notes, learn.record_line()
                                + "\n\U0001F4B0 " + paper.summary_line())
         ok, prov, detail = send_sms(_phone(), msg)

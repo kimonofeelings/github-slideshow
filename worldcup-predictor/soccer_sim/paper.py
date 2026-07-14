@@ -93,6 +93,95 @@ def fetch_advance_prices(round_name=None):
     return merged
 
 
+WINNER_SLUG = "https://gamma-api.polymarket.com/events?slug=world-cup-winner"
+
+
+def fetch_title_prices():
+    """{team_name_lower: yes_price} from Polymarket's tournament-winner
+    market ('Will X win the 2026 FIFA World Cup?'). Used once the
+    per-round 'Nation To Reach X' markets have all settled. {} when
+    unreachable."""
+    data = get_json(WINNER_SLUG, ttl=600)
+    prices = {}
+    for e in data or []:
+        for m in e.get("markets", []):
+            q = m.get("question") or ""
+            if not q.startswith("Will ") or " win the " not in q.lower():
+                continue
+            team = q[5:q.lower().index(" win the ")].strip().lower()
+            try:
+                outcomes = json.loads(m.get("outcomes") or "[]")
+                px = json.loads(m.get("outcomePrices") or "[]")
+                yes = float(px[outcomes.index("Yes")])
+            except (ValueError, IndexError, TypeError):
+                continue
+            if PRICE_BOUNDS[0] < yes < PRICE_BOUNDS[1]:
+                prices[team] = yes
+    return prices
+
+
+def consider_title_bets():
+    """One paper bet on the tournament-winner market: model title odds
+    (exact bracket math) vs Polymarket's winner prices. At most one
+    TITLE bet open at a time. Returns (note_lines, newly_placed)."""
+    from .tournament import title_odds
+    from .data.worldcup2026 import TEAMS
+
+    state = _load()
+    if any(b["match"] == "TITLE" for b in state["open"]):
+        return [], []
+    prices = fetch_title_prices()
+    if not prices:
+        return ["paper TITLE: winner-market prices unavailable"], []
+    candidates = []
+    for code, p_model in title_odds().items():
+        team = TEAMS.get(code)
+        q = prices.get(team.name.lower()) if team else None
+        if q is None:
+            continue
+        edge = p_model - q
+        if edge >= EDGE_MIN:
+            candidates.append((edge, code, p_model, q))
+    if not candidates:
+        return [f"paper TITLE: no edge >= {EDGE_MIN:.0%} - pass"], []
+    edge, code, p_model, q = max(candidates)
+    stake = round(_kelly_stake(state["bankroll"], p_model, q), 2)
+    if stake < MIN_STAKE:
+        return [f"paper TITLE: edge on {code} but stake too small - pass"], []
+    bet = {"match": "TITLE", "team": code, "price": q,
+           "model_p": round(p_model, 3), "edge": round(edge, 3),
+           "stake": stake, "placed": time.strftime("%Y-%m-%d %H:%MZ",
+                                                   time.gmtime())}
+    state["open"].append(bet)
+    state["bankroll"] = round(state["bankroll"] - stake, 2)
+    _save(state)
+    return [f"paper: ${stake:.0f} on {code} to WIN THE CUP @ "
+            f"{q:.0%} market vs {p_model:.0%} model (edge +{edge:.0%})"], [bet]
+
+
+def settle_title(champion_code):
+    """Resolve open TITLE bets once the champion is known."""
+    state = _load()
+    notes = []
+    still_open = []
+    for bet in state["open"]:
+        if bet["match"] != "TITLE":
+            still_open.append(bet)
+            continue
+        won = bet["team"] == champion_code
+        payout = round(bet["stake"] / bet["price"], 2) if won else 0.0
+        pnl = round(payout - bet["stake"], 2)
+        state["bankroll"] = round(state["bankroll"] + payout, 2)
+        bet.update(won=won, pnl=pnl, advanced=champion_code)
+        state["settled"].append(bet)
+        notes.append(f"paper TITLE: {bet['team']} @ {bet['price']:.0%} "
+                     f"{'WON +$%.0f' % pnl if won else 'LOST -$%.0f' % bet['stake']}"
+                     f" | bankroll ${state['bankroll']:.0f}")
+    state["open"] = still_open
+    _save(state)
+    return notes
+
+
 def _kelly_stake(bankroll, p_win, price):
     """Quarter-Kelly stake for buying a binary share at `price` that
     pays 1.0 when it wins."""
@@ -162,9 +251,11 @@ def build_bet_slip(bets, title="PAPER BET SLIP"):
     for b in bets:
         flag = FLAGS.get(b["team"], "")
         payout = b["stake"] / b["price"]
+        what = ("WIN THE CUP* \U0001F3C6" if b["match"] == "TITLE"
+                else f"advance* ({b['match']})")
         lines.append(
             f"\U0001F4B5 *${b['stake']:.0f} on {flag} {b['team']} to "
-            f"advance* ({b['match']})\n"
+            f"{what}\n"
             f"   @ {b['price']:.0%} market vs *{b['model_p']:.0%} model* "
             f"(edge +{b['edge']:.0%})\n"
             f"   pays ${payout:.0f} if it hits")

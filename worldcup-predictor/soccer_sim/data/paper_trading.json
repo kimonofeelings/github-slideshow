@@ -1,7 +1,17 @@
 {
- "bankroll": 921.4,
+ "bankroll": 902.87,
  "start": 1000.0,
- "open": [],
+ "open": [
+  {
+   "match": "TITLE",
+   "team": "ARG",
+   "price": 0.1745,
+   "model_p": 0.241,
+   "edge": 0.066,
+   "stake": 18.53,
+   "placed": "2026-07-14 01:38Z"
+  }
+ ],
  "settled": [
   {
    "match": "MEX-ENG",

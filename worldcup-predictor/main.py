@@ -179,6 +179,12 @@ def main():
         for res in results:
             learn.record_prediction(res)
         paper_notes, paper_placed = paper.consider_bets(results)
+        try:
+            t_notes, t_placed = paper.consider_title_bets()
+            paper_notes += t_notes
+            paper_placed += t_placed
+        except Exception:
+            pass
         for n in paper_notes:
             print(f"  - {n}")
 
