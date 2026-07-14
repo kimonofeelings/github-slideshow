@@ -124,7 +124,11 @@
    "lam_home": 1.19,
    "lam_away": 1.698,
    "recorded": "2026-07-10T15:04+00:00",
-   "settled": false
+   "settled": true,
+   "result": "1-2",
+   "called": true,
+   "brier": 0.117,
+   "advanced": "ENG"
   },
   {
    "home": "ARG",
@@ -135,6 +139,31 @@
    "lam_home": 1.42,
    "lam_away": 0.805,
    "recorded": "2026-07-10T15:04+00:00",
+   "settled": true,
+   "result": "3-1",
+   "called": true,
+   "brier": 0.07
+  },
+  {
+   "home": "FRA",
+   "away": "ESP",
+   "home_name": "France",
+   "away_name": "Spain",
+   "p_home_advance": 0.6085,
+   "lam_home": 1.356,
+   "lam_away": 1.072,
+   "recorded": "2026-07-13T20:35+00:00",
+   "settled": false
+  },
+  {
+   "home": "ENG",
+   "away": "ARG",
+   "home_name": "England",
+   "away_name": "Argentina",
+   "p_home_advance": 0.5221,
+   "lam_home": 1.519,
+   "lam_away": 1.43,
+   "recorded": "2026-07-13T20:35+00:00",
    "settled": false
   }
  ],
@@ -144,16 +173,16 @@
    "leak": 1.0564
   },
   "NOR": {
-   "attack": 1.0564,
-   "leak": 0.9758
+   "attack": 1.0463,
+   "leak": 0.9862
   },
   "MEX": {
    "attack": 1.0575,
    "leak": 1.06
   },
   "ENG": {
-   "attack": 1.06,
-   "leak": 1.0575
+   "attack": 1.0713,
+   "leak": 1.0474
   },
   "POR": {
    "attack": 0.94,
@@ -172,16 +201,16 @@
    "leak": 1.06
   },
   "ARG": {
-   "attack": 1.0466,
-   "leak": 1.06
+   "attack": 1.1094,
+   "leak": 1.0754
   },
   "EGY": {
    "attack": 1.06,
    "leak": 1.0466
   },
   "SUI": {
-   "attack": 0.94,
-   "leak": 0.94
+   "attack": 0.9537,
+   "leak": 0.9964
   },
   "COL": {
    "attack": 0.94,
@@ -197,9 +226,9 @@
   }
  },
  "record": {
-  "matches": 7,
-  "winners_called": 6,
-  "brier_sum": 1.3664000000000003
+  "matches": 9,
+  "winners_called": 8,
+  "brier_sum": 1.5534000000000003
  },
  "history": [
   {
@@ -278,6 +307,26 @@
    "brier": 0.1833,
    "learned": [
     "ESP attack +3% (scored 2 vs 1.3 expected); BEL defense leakier"
+   ]
+  },
+  {
+   "match": "NOR 1-2 ENG",
+   "predicted_home": 0.3421,
+   "called": true,
+   "brier": 0.117,
+   "learned": [
+    "NOR attack -1% (scored 1 vs 1.2 expected); ENG defense tighter",
+    "ENG attack +1% (scored 2 vs 1.7 expected); NOR defense leakier"
+   ]
+  },
+  {
+   "match": "ARG 3-1 SUI",
+   "predicted_home": 0.7355,
+   "called": true,
+   "brier": 0.07,
+   "learned": [
+    "ARG attack +6% (scored 3 vs 1.4 expected); SUI defense leakier",
+    "SUI attack +1% (scored 1 vs 0.8 expected); ARG defense leakier"
    ]
   }
  ]

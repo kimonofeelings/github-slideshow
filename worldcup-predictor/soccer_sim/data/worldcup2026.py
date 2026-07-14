@@ -395,12 +395,29 @@ CONTEXTS = {
         crowd=73_000, home_support=0.70, ref_strictness=0.50,
         rest_days=(4, 4), travel_km=(1_100, 2_900),
     ),
+    # --- SEMIFINALS ------------------------------------------------------
+    # France-Spain indoors at AT&T: the tournament's two best squads.
+    ("FRA", "ESP"): MatchContext(
+        venue="AT&T Stadium", city="Arlington", kickoff_local="14:00",
+        roof_closed=True, crowd=93_000, home_support=0.50,
+        ref_strictness=0.50,
+        rest_days=(5, 4), travel_km=(2_500, 2_000),
+    ),
+    # England-Argentina at Mercedes-Benz: a rematch of legends, huge
+    # Argentine turnout expected.
+    ("ENG", "ARG"): MatchContext(
+        venue="Mercedes-Benz Stadium", city="Atlanta", kickoff_local="15:00",
+        roof_closed=True, crowd=71_000, home_support=0.42,
+        ref_strictness=0.55,
+        rest_days=(4, 3), travel_km=(1_000, 1_100),
+    ),
 }
 
-# Real fixtures covered by this data: R16 (played) + quarterfinals
+# Real fixtures covered by this data: R16 + QFs (played) + semifinals
 FIXTURES = [("ARG", "EGY"), ("BRA", "NOR"), ("MEX", "ENG"),
             ("POR", "ESP"), ("USA", "BEL"), ("SUI", "COL"), ("FRA", "MAR"),
-            ("ESP", "BEL"), ("NOR", "ENG"), ("ARG", "SUI")]
+            ("ESP", "BEL"), ("NOR", "ENG"), ("ARG", "SUI"),
+            ("FRA", "ESP"), ("ENG", "ARG")]
 
 
 def get_team(code):
