@@ -168,7 +168,11 @@
    "lam_home": 1.519,
    "lam_away": 1.43,
    "recorded": "2026-07-15T15:03+00:00",
-   "settled": false
+   "settled": true,
+   "result": "1-2",
+   "called": false,
+   "brier": 0.2726,
+   "advanced": "ARG"
   }
  ],
  "team_adj": {
@@ -185,8 +189,8 @@
    "leak": 1.06
   },
   "ENG": {
-   "attack": 1.0713,
-   "leak": 1.0474
+   "attack": 1.0493,
+   "leak": 1.0724
   },
   "POR": {
    "attack": 0.94,
@@ -205,8 +209,8 @@
    "leak": 1.06
   },
   "ARG": {
-   "attack": 1.1094,
-   "leak": 1.0754
+   "attack": 1.1359,
+   "leak": 1.0534
   },
   "EGY": {
    "attack": 1.06,
@@ -230,9 +234,9 @@
   }
  },
  "record": {
-  "matches": 10,
+  "matches": 11,
   "winners_called": 8,
-  "brier_sum": 1.9237000000000004
+  "brier_sum": 2.1963000000000004
  },
  "history": [
   {
@@ -341,6 +345,16 @@
    "learned": [
     "FRA attack -6% (scored 0 vs 1.4 expected); ESP defense tighter",
     "ESP attack +5% (scored 2 vs 1.1 expected); FRA defense leakier"
+   ]
+  },
+  {
+   "match": "ENG 1-2 ARG",
+   "predicted_home": 0.5221,
+   "called": false,
+   "brier": 0.2726,
+   "learned": [
+    "ENG attack -2% (scored 1 vs 1.5 expected); ARG defense tighter",
+    "ARG attack +2% (scored 2 vs 1.4 expected); ENG defense leakier"
    ]
   }
  ]

@@ -411,13 +411,30 @@ CONTEXTS = {
         ref_strictness=0.55,
         rest_days=(4, 3), travel_km=(1_000, 1_100),
     ),
+    # --- THIRD-PLACE GAME & FINAL ----------------------------------------
+    # Bronze final in Miami heat: both squads coming off semifinal losses.
+    ("FRA", "ENG"): MatchContext(
+        venue="Hard Rock Stadium", city="Miami Gardens",
+        kickoff_local="17:00", temp_c=32, humidity=0.75,
+        crowd=65_000, home_support=0.50, ref_strictness=0.45,
+        rest_days=(4, 3), travel_km=(1_800, 1_000),
+    ),
+    # The final at MetLife: Spain's press against Argentina's counters.
+    ("ESP", "ARG"): MatchContext(
+        venue="MetLife Stadium", city="East Rutherford",
+        kickoff_local="15:00", temp_c=28, humidity=0.60,
+        crowd=82_500, home_support=0.45, ref_strictness=0.55,
+        rest_days=(5, 4), travel_km=(2_200, 1_200),
+    ),
 }
 
-# Real fixtures covered by this data: R16 + QFs (played) + semifinals
+# Real fixtures covered by this data: R16 + QFs + SFs (played),
+# then the third-place game (Jul 18) and the final (Jul 19)
 FIXTURES = [("ARG", "EGY"), ("BRA", "NOR"), ("MEX", "ENG"),
             ("POR", "ESP"), ("USA", "BEL"), ("SUI", "COL"), ("FRA", "MAR"),
             ("ESP", "BEL"), ("NOR", "ENG"), ("ARG", "SUI"),
-            ("FRA", "ESP"), ("ENG", "ARG")]
+            ("FRA", "ESP"), ("ENG", "ARG"),
+            ("FRA", "ENG"), ("ESP", "ARG")]
 
 
 def get_team(code):
