@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.cache/
+results_*.json
+phone.txt
+sms.env

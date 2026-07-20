@@ -1,0 +1,91 @@
+{
+ "bankroll": 902.87,
+ "start": 1000.0,
+ "open": [],
+ "settled": [
+  {
+   "match": "MEX-ENG",
+   "team": "ENG",
+   "price": 0.505,
+   "model_p": 0.679,
+   "edge": 0.174,
+   "stake": 48.03,
+   "placed": "2026-07-05 22:31Z",
+   "won": true,
+   "pnl": 47.08,
+   "advanced": "ENG"
+  },
+  {
+   "match": "POR-ESP",
+   "team": "POR",
+   "price": 0.335,
+   "model_p": 0.462,
+   "edge": 0.127,
+   "stake": 48.2,
+   "placed": "2026-07-06 15:12Z",
+   "won": false,
+   "pnl": -48.2,
+   "advanced": "ESP"
+  },
+  {
+   "match": "USA-BEL",
+   "team": "BEL",
+   "price": 0.465,
+   "model_p": 0.54,
+   "edge": 0.075,
+   "stake": 33.64,
+   "placed": "2026-07-06 15:12Z",
+   "won": true,
+   "pnl": 38.7,
+   "advanced": "BEL"
+  },
+  {
+   "match": "ARG-EGY",
+   "team": "EGY",
+   "price": 0.135,
+   "model_p": 0.272,
+   "edge": 0.137,
+   "stake": 39.47,
+   "placed": "2026-07-05 22:31Z",
+   "won": false,
+   "pnl": -39.47,
+   "advanced": "ARG"
+  },
+  {
+   "match": "FRA-MAR",
+   "team": "MAR",
+   "price": 0.2265,
+   "model_p": 0.314,
+   "edge": 0.087,
+   "stake": 28.21,
+   "placed": "2026-07-09 18:39Z",
+   "won": false,
+   "pnl": -28.21,
+   "advanced": "FRA"
+  },
+  {
+   "match": "ESP-BEL",
+   "team": "BEL",
+   "price": 0.2555,
+   "model_p": 0.428,
+   "edge": 0.173,
+   "stake": 48.5,
+   "placed": "2026-07-09 18:39Z",
+   "won": false,
+   "pnl": -48.5,
+   "advanced": "ESP"
+  },
+  {
+   "match": "TITLE",
+   "team": "ARG",
+   "price": 0.1745,
+   "model_p": 0.241,
+   "edge": 0.066,
+   "stake": 18.53,
+   "placed": "2026-07-14 01:38Z",
+   "won": false,
+   "pnl": -18.53,
+   "advanced": "ESP"
+  }
+ ]
+}
