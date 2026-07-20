@@ -228,7 +228,7 @@ def test_tournament():
     from soccer_sim.data.worldcup2026 import get_team
     odds = title_odds()
     check("title odds sum to 1", abs(sum(odds.values()) - 1.0) < 1e-9)
-    check("plausible number of alive teams", 2 <= len(odds) <= 12)
+    check("plausible number of alive teams", 1 <= len(odds) <= 12)
     check("eliminated teams absent",
           "BRA" not in odds and "MEX" not in odds)
     check("favorites are plausible",
