@@ -1,17 +1,7 @@
 {
  "bankroll": 902.87,
  "start": 1000.0,
- "open": [
-  {
-   "match": "TITLE",
-   "team": "ARG",
-   "price": 0.1745,
-   "model_p": 0.241,
-   "edge": 0.066,
-   "stake": 18.53,
-   "placed": "2026-07-14 01:38Z"
-  }
- ],
+ "open": [],
  "settled": [
   {
    "match": "MEX-ENG",
@@ -83,6 +73,18 @@
    "placed": "2026-07-09 18:39Z",
    "won": false,
    "pnl": -48.5,
+   "advanced": "ESP"
+  },
+  {
+   "match": "TITLE",
+   "team": "ARG",
+   "price": 0.1745,
+   "model_p": 0.241,
+   "edge": 0.066,
+   "stake": 18.53,
+   "placed": "2026-07-14 01:38Z",
+   "won": false,
+   "pnl": -18.53,
    "advanced": "ESP"
   }
  ]

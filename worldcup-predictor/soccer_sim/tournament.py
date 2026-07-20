@@ -36,7 +36,11 @@ QF_GAMES = {
     "qf3": ("g5", "g6"),
     "qf4": ("g7", "g8"),
 }
-SF_GAMES = {"sf1": ("qf1", "qf2"), "sf2": ("qf3", "qf4")}
+# Real FIFA bracket: SF1 paired the QF1 winner with the QF3 winner
+# (FRA-ESP), SF2 the QF2 winner with the QF4 winner (ENG-ARG) - NOT
+# qf1-vs-qf2. The wrong wiring let the third-place result stand in for
+# a semifinal and skewed title odds after the bronze final was graded.
+SF_GAMES = {"sf1": ("qf1", "qf3"), "sf2": ("qf2", "qf4")}
 FINAL = ("sf1", "sf2")
 
 

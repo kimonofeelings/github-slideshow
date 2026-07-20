@@ -183,7 +183,11 @@
    "lam_home": 1.37,
    "lam_away": 1.223,
    "recorded": "2026-07-18T15:03+00:00",
-   "settled": false
+   "settled": true,
+   "result": "4-6",
+   "called": false,
+   "brier": 0.293,
+   "advanced": "ENG"
   },
   {
    "home": "ESP",
@@ -194,7 +198,11 @@
    "lam_home": 1.29,
    "lam_away": 1.269,
    "recorded": "2026-07-18T15:03+00:00",
-   "settled": false
+   "settled": true,
+   "result": "1-0",
+   "called": false,
+   "brier": 0.2715,
+   "advanced": "ESP"
   }
  ],
  "team_adj": {
@@ -211,16 +219,16 @@
    "leak": 1.06
   },
   "ENG": {
-   "attack": 1.0493,
-   "leak": 1.0724
+   "attack": 1.1123,
+   "leak": 1.1367
   },
   "POR": {
    "attack": 0.94,
    "leak": 0.9884
   },
   "ESP": {
-   "attack": 1.0757,
-   "leak": 0.8836
+   "attack": 1.0612,
+   "leak": 0.85
   },
   "BEL": {
    "attack": 1.06,
@@ -231,8 +239,8 @@
    "leak": 1.06
   },
   "ARG": {
-   "attack": 1.1359,
-   "leak": 1.0534
+   "attack": 1.0677,
+   "leak": 1.0392
   },
   "EGY": {
    "attack": 1.06,
@@ -247,8 +255,8 @@
    "leak": 0.94
   },
   "FRA": {
-   "attack": 0.9653,
-   "leak": 0.9888
+   "attack": 1.0232,
+   "leak": 1.0481
   },
   "MAR": {
    "attack": 0.94,
@@ -256,9 +264,9 @@
   }
  },
  "record": {
-  "matches": 11,
+  "matches": 13,
   "winners_called": 8,
-  "brier_sum": 2.1963000000000004
+  "brier_sum": 2.7608000000000006
  },
  "history": [
   {
@@ -377,6 +385,26 @@
    "learned": [
     "ENG attack -2% (scored 1 vs 1.5 expected); ARG defense tighter",
     "ARG attack +2% (scored 2 vs 1.4 expected); ENG defense leakier"
+   ]
+  },
+  {
+   "match": "FRA 4-6 ENG",
+   "predicted_home": 0.5413,
+   "called": false,
+   "brier": 0.293,
+   "learned": [
+    "FRA attack +6% (scored 4 vs 1.4 expected); ENG defense leakier",
+    "ENG attack +6% (scored 6 vs 1.2 expected); FRA defense leakier"
+   ]
+  },
+  {
+   "match": "ESP 1-0 ARG",
+   "predicted_home": 0.4789,
+   "called": false,
+   "brier": 0.2715,
+   "learned": [
+    "ESP attack -1% (scored 1 vs 1.3 expected); ARG defense tighter",
+    "ARG attack -6% (scored 0 vs 1.3 expected); ESP defense tighter"
    ]
   }
  ]
